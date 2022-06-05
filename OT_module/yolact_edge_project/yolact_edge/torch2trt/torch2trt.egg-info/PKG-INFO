@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Name: torch2trt
+Version: 0.3.0
+Summary: An easy to use PyTorch to TensorRT converter
+License: UNKNOWN
+Platform: UNKNOWN
+License-File: LICENSE.md
+
+UNKNOWN
+
