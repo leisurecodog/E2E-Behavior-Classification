@@ -9,6 +9,10 @@ class DrivingBehaviorSystem:
         """
         self.traj: list = [frame_1, frame_2, ... , frame_i]
         frame_i: dict = {key: id, value: [x,y] coordinate}
+        MOT: Multiple Object Tracking
+        TP: Trajectory Prediction
+        BC: Behaivior Classification
+        OT: OverTaking Assistant
         """
         # root_path = os.getcwd()
         self.traj = []
@@ -75,7 +79,7 @@ class DrivingBehaviorSystem:
         img_info = {}
         results = {}
         outputs = yolo_detect.detect(self.object_predictor, self.imgsz, self.names, frame)
-        self.objdet_outputs = outputs
+        self.objdet_outputs = outputs.cpu().detach().numpy()
         img_info['height'], img_info['width'] = frame.shape[:2]
         img_info['raw_img'] = frame
 
@@ -114,7 +118,7 @@ class DrivingBehaviorSystem:
             if id not in self.current_ID:
                 self.current_ID.append(id)
         self.traj.append(frame)
-        print("Update Traj Finished.")
+        # print("Update Traj Finished.")
 
     def show(self, frame, bbox):
         for id in bbox.keys():
@@ -186,7 +190,7 @@ class DrivingBehaviorSystem:
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
         if len(self.current_ID) < self.BC_opt.id_num:
-            print("No enough ID.")
+            # print("No enough ID.")
             return 
         # if futures is empty list that mean don't predict future trajectory
         trajs, labels = self.BC_preprocess()

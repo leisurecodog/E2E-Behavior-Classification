@@ -1228,7 +1228,7 @@ def load_yolact_edge():
         args.trained_model = SavePath.get_interrupt('weights/')
     elif args.trained_model == 'latest':
         args.trained_model = SavePath.get_latest('weights/', cfg.name)
-    print(args.trained_model)
+    # print(args.trained_model)
     if args.config is None:
         model_path = SavePath.from_str(args.trained_model)
         # TODO: Bad practice? Probably want to do a name lookup instead.

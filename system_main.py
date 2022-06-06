@@ -12,13 +12,13 @@ if __name__ == '__main__':
 
     while True:
         # ret_val: True -> Read image, False -> No image
-        # frame: just frame
+        # frame: image frame.
         ret_val, frame = cap.read()
+        # start working when have image.
         if ret_val:
             futures = []
             if sys_args.resize:
                 frame = cv2.resize(frame,(sys_args.size))
-
             # bounding box and ID infomation
             res = System.MOT_run(frame, frame_id, format=sys_args.format_str)
             if sys_args.show:
