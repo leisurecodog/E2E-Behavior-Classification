@@ -69,10 +69,10 @@ class DrivingBehaviorSystem:
         msg = "Initializing OT Module..."
         prGreen(msg)
         from OT_module.main import inference, set_opt
-        from OT_module.yolact_edge_project.eval import load_yolact_edge
+        # from OT_module.yolact_edge_project.eval import load_yolact_edge
         self.inference_ptr = inference
         self.OT_args = set_opt()
-        self.yolact_edge_model = load_yolact_edge()
+        # self.yolact_edge_model = load_yolact_edge()
 
     def MOT_run(self, frame, frame_id, format):
         from MOT_module import yolo_detect
@@ -193,11 +193,12 @@ class DrivingBehaviorSystem:
             # print("No enough ID.")
             return 
         # if futures is empty list that mean don't predict future trajectory
+        # TO DO, need to constraint id number from video.
         trajs, labels = self.BC_preprocess()
         adj = computeA(trajs, labels, self.BC_opt.neighber, self.BC_opt.dataset, True)
         Laplacian_Matrices = extractLi(adj)
         U_Matrices = RQI(Laplacian_Matrices)
-        # print(np.shape(U_Matrices))
+        print(np.shape(U_Matrices))
         new_Matrices = np.reshape(U_Matrices, (-1, self.BC_opt.id_num)) 
         # print(new_Matrices.shape)
         res = self.classifier.predict(new_Matrices)
@@ -205,10 +206,12 @@ class DrivingBehaviorSystem:
         # -1 mean outlier, 1 mean inlier
         # -1 mean aggressive, 1 mean conservative
         input()
-        if futures == []:
+        if futures is None:
             print("Behavior Classification without future Trajectory.")
         else:
+            # TO DO
             print("predict BC using future trajs")
+
     def OT_run(self, frame):
-        flag = self.inference_ptr(self.yolact_edge_model, self.objdet_outputs, frame)
+        flag = self.inference_ptr(self.objdet_outputs, frame)
         return flag

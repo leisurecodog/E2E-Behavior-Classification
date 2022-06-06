@@ -3,7 +3,8 @@ import argparse
 def get_parser():
     parser = argparse.ArgumentParser()
     # ==================== System argument ====================
-    parser.add_argument('--video_path', default='/media/rvl/D/Work/fengan/Dataset/CEO/front/201126152525.MOV', type=str)
+    parser.add_argument('--video_path', default='/media/rvl/D/Work/fengan/Dataset/CEO/20201116/front/201116154627.MOV', type=str)
+    # print(f_shape)
     parser.add_argument('--demo', default='video', type=str)
     parser.add_argument('--camid', default=0, type=int)
     parser.add_argument('--dashcam', default=False, type=bool)

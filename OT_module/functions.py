@@ -99,8 +99,8 @@ class overtaking_system:
         self.running = flag
 
     def update_lane(self):
-        self.left_lane = np.array(self.left_lane, dtype=np.uint32)
-        self.right_lane = np.array(self.right_lane, dtype=np.uint32)
+        self.left_lane = np.array(self.left_lane, dtype=np.int32)
+        self.right_lane = np.array(self.right_lane, dtype=np.int32)
         final_top_idx = -1
         for i in range(len(self.left_lane[0])):
             left_x = self.left_lane[0][i]
@@ -126,8 +126,7 @@ class overtaking_system:
         l_dist = np.inf
         r_dist = np.inf
         x_coord, y_coord = lanes[0], lanes[1]
-        for i in range(len(x_coord)):
-            
+        for i in range(len(x_coord)): 
             if x_coord[i][-1] < center:
                 if abs(x_coord[i][-1] - center) < l_dist:
                     l_dist = abs(x_coord[i][-1] - center)
@@ -200,10 +199,12 @@ class overtaking_system:
         right_lane_idx = [len(self.right_lane) - i*devide for i in range(split)]
         overlap_left = []
         overlap_right = []
+        threshold_list = []
         for i in range(split):
             coord_left_x, coord_left_y = self.left_lane[:, left_lane_idx[i]]
             coord_right_x, coord_right_y = self.right_lane[:, right_lane_idx[i]]
             threshold = coord_right_x - coord_left_x
+            threshold_list.append(threshold)
             bias = 5 # calculate sum of left and right not from center of line
             sum_left = 0
             sum_right = 0
@@ -211,29 +212,32 @@ class overtaking_system:
                 if self.lane_mask[coord_left_y][j][2] > 0:
                     sum_left += 1
                 else:
-                    overlap_left.append(sum_left)
                     break
+            overlap_left.append(sum_left)
             for j in range(coord_right_x+bias, self.lane_mask.shape[1]):
                 if self.lane_mask[coord_right_y][j][2] > 0:
                     sum_right += 1
                 else:
-                    overlap_right.append(sum_right)
                     break
-            res_l = True
-            res_r = True
-            for i in range(split):
-                if overlap_left[i] < threshold * self.variant:
-                    res_l = False
-                    break
-            for i in range(split):
-                if overlap_right[i] < threshold * self.variant:
-                    res_r = False
-                    break
-            self.detect_result = (res_l, res_r)   
+            overlap_right.append(sum_right)
+        res_l = True
+        res_r = True
+        for i in range(split):
+            if overlap_left[i] < threshold_list[i] * self.variant:
+                res_l = False
+                break
+        for i in range(split):
+            if overlap_right[i] < threshold_list[i] * self.variant:
+                res_r = False
+                break
+
+        self.detect_result = (res_l, res_r)   
 
     def detect_overtaking(self, bbs, lane_mask):
         if not self.both_lane_flag:
-            print("Overtaking System is not ready.......")
+            # print("Overtaking System is not ready.......")
+            self.running = True
+            self.set_msg(0)
             return
         self.lane_mask = lane_mask
         overlap_ratio = 40.0
