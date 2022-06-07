@@ -11,7 +11,7 @@ def get_parser():
     parser.add_argument('--show', default=False, type=bool)
     # ==================== MOT argument ====================
     parser.add_argument('--traj_model_path', default='./TP_module/weights', type=str)
-    parser.add_argument('--future', default=True, type=bool)
+    parser.add_argument('--future', default=False, type=bool)
     parser.add_argument('--format_str', default='bbox', type=str)
     parser.add_argument('--resize', default=True, type=bool)
     parser.add_argument('--size', default=(1080, 720), type=tuple)

@@ -153,24 +153,21 @@ class DrivingBehaviorSystem:
             return None
 
         future_trajs = {}
-        for id, traj in self.traj.items():
-            # self.traj_len_required mean state number
-            # traj is combined x1, y1, x2, y2 ..., xi, yi
-            # so self.traj_len_required needs * 2 
-            if len(traj) >= self.traj_len_required * 2:
+        traj_id = []
+        for id, v in self.ID_counter.items():
+            if v >= self.traj_len_required:
+                # collect trajs from buffer(self.traj)
+                for frame in self.traj:
+                    if id in frame:
+                        traj_id.append(frame[id])
                 if id not in future_trajs:
                     future_trajs[id] = []
-                future_trajs[id].append(self.predict_traj(traj))
-        self.traj_reset()
+                future_trajs[id].append(self.predict_traj(traj_id))
+        
         return future_trajs
     
     def is_enough_tarj(self):
         # one of traj has long enough to predict trjectory.
-#         for traj in self.traj.values():
-#             if len(traj) >= self.traj_len_required:
-#                 return True
-
-#         return False
         return True in ( np.array(list(self.ID_counter.values())) > self.traj_len_required)
 
     def traj_reset(self):
@@ -187,16 +184,16 @@ class DrivingBehaviorSystem:
         from BC_module.data_preprocess import id_normalize, mapping_list
         # calculate total id and make dictionary.
         fake_label_list = {}
-
-        self.ID_counter = dict(sorted(self.ID_counter.items(), key=lambda item: item[1], reverse=True))
-        self.top_k_ID = [k for idx, k in enumerate(self.ID_counter.keys()) if idx < self.BC_opt.id_num]
+        # Constraint ID number
+        ID_counter_sorted = dict(sorted(self.ID_counter.items(), key=lambda item: item[1], reverse=True))
+        top_k_ID = [k for idx, k in enumerate(ID_counter_sorted) if idx < self.BC_opt.id_num]
         sub_frames = []
         for frame in self.traj:
             sub_frame = {}
             # print(frame)
             for k in frame.keys():
                 # only get top k frequencies ID to do 
-                if k not in fake_label_list and k in self.top_k_ID:
+                if k not in fake_label_list and k in top_k_ID:
                     fake_label_list[k] = 0
                     sub_frame[k] = frame[k]
             sub_frames.append(sub_frame)
@@ -206,17 +203,18 @@ class DrivingBehaviorSystem:
         return (tmp_traj, new_fake_label_list)
 
     def BC_run(self, futures):
+        hint_str = ''
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
         if len(self.ID_counter) < self.BC_opt.id_num:
             # print("No enough ID.")
             return 
         # if futures is empty list that mean don't predict future trajectory
-        # TO DO, need to constraint id number from video.
         trajs, labels = self.BC_preprocess()
         adj = computeA(trajs, labels, self.BC_opt.neighber, self.BC_opt.dataset, True)
         Laplacian_Matrices = extractLi(adj)
         U_Matrices = RQI(Laplacian_Matrices)
+
         # print("U_Matrices.shape: ",np.shape(U_Matrices))
         new_Matrices = np.reshape(U_Matrices, (-1, self.BC_opt.id_num)) 
         # print(new_Matrices.shape)
@@ -225,10 +223,12 @@ class DrivingBehaviorSystem:
         # -1 mean outlier, 1 mean inlier
         # -1 mean aggressive, 1 mean conservative
         if futures is None:
-            print("Behavior Classification without future Trajectory.")
+            hint_str = "Behavior Classification without future Trajectory."
         else:
-            # TO DO
-            print("predict BC using future trajs")
+            hint_str = "predict BC using future trajs"
+
+            self.traj_reset()
+            # TO DO 
 
     def OT_run(self, frame):
         flag = self.inference_ptr(self.objdet_outputs, frame)

@@ -30,7 +30,6 @@ if __name__ == '__main__':
             System.update_traj(res)
             if sys_args.future:
                 futures = System.get_future_traj()
-
             # ========== run BC module ==========
             System.BC_run(futures)
 
