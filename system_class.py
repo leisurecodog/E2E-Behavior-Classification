@@ -60,7 +60,7 @@ class DrivingBehaviorSystem:
         from BC_module.parser import add_parser
         from sklearn.svm import OneClassSVM
         import joblib
-        self.BC_opt = add_parser()
+        self.BC_args = add_parser()
         BC_model_path = './BC_module/weights/osvm.pkl'
         self.classifier = joblib.load(BC_model_path)
         self.ID_counter = {}
@@ -186,7 +186,7 @@ class DrivingBehaviorSystem:
         fake_label_list = {}
         # Constraint ID number
         ID_counter_sorted = dict(sorted(self.ID_counter.items(), key=lambda item: item[1], reverse=True))
-        top_k_ID = [k for idx, k in enumerate(ID_counter_sorted) if idx < self.BC_opt.id_num]
+        top_k_ID = [k for idx, k in enumerate(ID_counter_sorted) if idx < self.BC_args.id_num]
         sub_frames = []
         for frame in self.traj:
             sub_frame = {}
@@ -205,17 +205,17 @@ class DrivingBehaviorSystem:
         hint_str = ''
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
-        if len(self.ID_counter) < self.BC_opt.id_num:
+        if len(self.ID_counter) < self.BC_args.id_num:
             # print("No enough ID.")
             return 
         # if futures is empty list that mean don't predict future trajectory
         trajs, labels = self.BC_preprocess()
-        adj = computeA(trajs, labels, self.BC_opt.neighber, self.BC_opt.dataset, True)
+        adj = computeA(trajs, labels, self.BC_args.neighber, self.BC_args.dataset, True)
         Laplacian_Matrices = extractLi(adj)
         U_Matrices = RQI(Laplacian_Matrices)
 
         # print("U_Matrices.shape: ",np.shape(U_Matrices))
-        new_Matrices = np.reshape(U_Matrices, (-1, self.BC_opt.id_num)) 
+        new_Matrices = np.reshape(U_Matrices, (-1, self.BC_args.id_num)) 
         # print(new_Matrices.shape)
         res = self.classifier.predict(new_Matrices)
         # In One Class SVM classification result,
