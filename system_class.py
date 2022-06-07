@@ -63,7 +63,7 @@ class DrivingBehaviorSystem:
         self.BC_opt = add_parser()
         BC_model_path = './BC_module/weights/osvm.pkl'
         self.classifier = joblib.load(BC_model_path)
-        self.current_ID = []
+        self.ID_counter = {}
 
     def init_OT(self):
         msg = "Initializing OT Module..."
@@ -112,11 +112,14 @@ class DrivingBehaviorSystem:
     def update_traj(self, data):
         frame = {}
         for id in data.keys():
+            # record ID appear times.
+
             center_x = data[id][0] + data[id][2]
             center_y = data[id][1] + data[id][3]
             frame[id] = [center_x, center_y]
-            if id not in self.current_ID:
-                self.current_ID.append(id)
+            if id not in self.ID_counter:
+                self.ID_counter[id] = 0
+            self.ID_counter[id] += 1
         self.traj.append(frame)
         # print("Update Traj Finished.")
 
@@ -147,7 +150,8 @@ class DrivingBehaviorSystem:
 
     def get_future_traj(self):
         if not self.is_enough_tarj():
-            return {}
+            return None
+
         future_trajs = {}
         for id, traj in self.traj.items():
             # self.traj_len_required mean state number
@@ -157,16 +161,23 @@ class DrivingBehaviorSystem:
                 if id not in future_trajs:
                     future_trajs[id] = []
                 future_trajs[id].append(self.predict_traj(traj))
+        self.traj_reset()
         return future_trajs
     
     def is_enough_tarj(self):
         # one of traj has long enough to predict trjectory.
-        for traj in self.traj.values():
-            if len(traj) >= self.traj_len_required:
-                return True
-        return False
+#         for traj in self.traj.values():
+#             if len(traj) >= self.traj_len_required:
+#                 return True
 
-    # def is_enough_BC(self):
+#         return False
+        return True in ( np.array(list(self.ID_counter.values())) > self.traj_len_required)
+
+    def traj_reset(self):
+        self.traj = []
+        self.ID_counter = {}
+
+ # ==============================================================================================
 
     def BC_preprocess(self):
         # final shape we should get:
@@ -176,20 +187,28 @@ class DrivingBehaviorSystem:
         from BC_module.data_preprocess import id_normalize, mapping_list
         # calculate total id and make dictionary.
         fake_label_list = {}
+
+        self.ID_counter = dict(sorted(self.ID_counter.items(), key=lambda item: item[1], reverse=True))
+        self.top_k_ID = [k for idx, k in enumerate(self.ID_counter.keys()) if idx < self.BC_opt.id_num]
+        sub_frames = []
         for frame in self.traj:
+            sub_frame = {}
             # print(frame)
             for k in frame.keys():
-                if k not in fake_label_list:
+                # only get top k frequencies ID to do 
+                if k not in fake_label_list and k in self.top_k_ID:
                     fake_label_list[k] = 0
+                    sub_frame[k] = frame[k]
+            sub_frames.append(sub_frame)
         # make the id number starts from 1
-        tmp_traj, new_fake_label_list = id_normalize([self.traj], [[fake_label_list]])
+        tmp_traj, new_fake_label_list = id_normalize([sub_frames], [[fake_label_list]])
         # print(mapping_list[-1])
         return (tmp_traj, new_fake_label_list)
 
     def BC_run(self, futures):
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
-        if len(self.current_ID) < self.BC_opt.id_num:
+        if len(self.ID_counter) < self.BC_opt.id_num:
             # print("No enough ID.")
             return 
         # if futures is empty list that mean don't predict future trajectory
@@ -198,20 +217,17 @@ class DrivingBehaviorSystem:
         adj = computeA(trajs, labels, self.BC_opt.neighber, self.BC_opt.dataset, True)
         Laplacian_Matrices = extractLi(adj)
         U_Matrices = RQI(Laplacian_Matrices)
-        print(np.shape(U_Matrices))
+        # print("U_Matrices.shape: ",np.shape(U_Matrices))
         new_Matrices = np.reshape(U_Matrices, (-1, self.BC_opt.id_num)) 
         # print(new_Matrices.shape)
         res = self.classifier.predict(new_Matrices)
         # In One Class SVM classification result,
         # -1 mean outlier, 1 mean inlier
         # -1 mean aggressive, 1 mean conservative
-        input()
         if futures is None:
             print("Behavior Classification without future Trajectory.")
         else:
             # TO DO
-            # TO DO
-            print("????")
             print("predict BC using future trajs")
 
     def OT_run(self, frame):

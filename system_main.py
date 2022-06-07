@@ -32,7 +32,7 @@ if __name__ == '__main__':
                 futures = System.get_future_traj()
 
             # ========== run BC module ==========
-            # System.BC_run(futures)
+            System.BC_run(futures)
 
             # ========== run OT module ==========
             if System.OT_run(frame):
