@@ -209,7 +209,7 @@ def id_normalize(vid_list, l_list):
         new_vid_list.append(vid_dict)
         mapping_list.append({keys.index(key):key for key in keys})
         # print(mapping_list[0], vid_dict[0], dic1)
-    return new_vid_list, new_labels_list
+    return new_vid_list, new_labels_list, mapping_list
 
 def label_clean(videos_list, labels_list, opt):
     """

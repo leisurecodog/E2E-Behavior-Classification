@@ -188,11 +188,11 @@ def inference(objdet=None, frame=None):
     lane_mask = prep_display(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
     OTS.detect_overtaking(objdet, lane_mask)
 
-    frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
-    frame = cv2.putText(frame, OTS.msg, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
-    cv2.imshow("te", frame)
-    if cv2.waitKey(1) == 27:
-        return True
+    # frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
+    # frame = cv2.putText(frame, OTS.msg, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
+    # cv2.imshow("te", frame)
+    # if cv2.waitKey(1) == 27:
+        # return True
     
 
 def set_opt():

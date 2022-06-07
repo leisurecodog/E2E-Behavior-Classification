@@ -5,7 +5,8 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 
-from TP_module.model import (Actor, Critic, Actor_LSTM)
+# from TP_module.model import (Actor, Critic, Actor_LSTM)
+from TP_module.model_offline import (Actor, Critic, Actor_LSTM)
 from TP_module.memory import SequentialMemory
 from TP_module.random_process import OrnsteinUhlenbeckProcess
 from TP_module.util import *
@@ -145,13 +146,14 @@ class DDPG(object):
 
     def load_weights(self, output):
         if output is None: return
-
+        s = '_best'
+        # s = ''
         self.actor.load_state_dict(
-            torch.load('{}/actor_best.pkl'.format(output))
+            torch.load('{}/actor{}.pkl'.format(output, s))
         )
 
         self.critic.load_state_dict(
-            torch.load('{}/critic_best.pkl'.format(output))
+            torch.load('{}/critic{}.pkl'.format(output, s))
         )
 
 

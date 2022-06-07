@@ -10,7 +10,7 @@ from TP_module.utils.data import *
 from sklearn.model_selection import train_test_split
 
 class environment:
-    def __init__(self, data_select='train', nb_t=5, mode='default', args=None):
+    def __init__(self, data_select='train', nb_t=10, mode='default', args=None):
         self.nb_t = nb_t
         self.nb_s = self.nb_t * 2
         self.nb_a = 2
