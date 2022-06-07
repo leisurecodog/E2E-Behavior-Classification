@@ -31,8 +31,8 @@ class DrivingBehaviorSystem:
         from MOT_module.tracker.byte_tracker import BYTETracker
         from MOT_module.tools.demo_track_yolov5 import load_yolov5
 
-        self.mot_args = parser_MOT().parse_args()
-        self.tracker = BYTETracker(self.mot_args, frame_rate=self.mot_args.fps)
+        self.MOT_args = parser_MOT().parse_args()
+        self.tracker = BYTETracker(self.MOT_args, frame_rate=self.MOT_args.fps)
         self.object_predictor, self.imgsz, self.names = load_yolov5(rt=True)
 
     def init_TP(self):
