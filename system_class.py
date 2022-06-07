@@ -190,9 +190,8 @@ class DrivingBehaviorSystem:
         sub_frames = []
         for frame in self.traj:
             sub_frame = {}
-            # print(frame)
             for k in frame.keys():
-                # only get top k frequencies ID to do 
+                # only get top k frequencies ID to do GraphRQI
                 if k not in fake_label_list and k in top_k_ID:
                     fake_label_list[k] = 0
                     sub_frame[k] = frame[k]
@@ -228,7 +227,7 @@ class DrivingBehaviorSystem:
             hint_str = "predict BC using future trajs"
 
             self.traj_reset()
-            # TO DO 
+            # TO DO: needs to Conbine past traj and future traj. 
 
     def OT_run(self, frame):
         flag = self.inference_ptr(self.objdet_outputs, frame)
