@@ -10,6 +10,7 @@ class DrivingBehaviorSystem:
         """
         self.traj: list = [frame_1, frame_2, ... , frame_i]
         frame_i: dict = {key: id, value: [x,y] coordinate}
+        
         MOT: Multiple Object Tracking
         TP: Trajectory Prediction
         BC: Behaivior Classification
@@ -23,7 +24,7 @@ class DrivingBehaviorSystem:
         self.init_TP()
         self.init_BC()
         self.init_OT()
-
+    # ========================= MOT module code =========================
     def init_MOT(self):
         msg = "Initializing MOT Module..."
         prGreen(msg)
@@ -35,47 +36,6 @@ class DrivingBehaviorSystem:
         self.MOT_args = parser_MOT().parse_args()
         self.tracker = BYTETracker(self.MOT_args, frame_rate=self.MOT_args.fps)
         self.object_predictor, self.imgsz, self.names = load_yolov5(rt=True)
-
-    def init_TP(self):
-        msg = "Initializing TP Module..."
-        prGreen(msg)
-        from TP_module.ddpg import DDPG
-        from TP_module import env as Env
-        from TP_module import parser as TP_parser
-        TP_args = TP_parser.get_parser()
-        TP_args.actor = "seq2seq"
-        print(TP_args.actor)
-        model_path = './TP_module/weights/' + TP_args.actor
-        # TP_args.actor = 'LSTM'
-        self.env = Env.environment(data_select=TP_args.mode, mode='test', args=TP_args)
-        self.traj_len_required = self.env.nb_t 
-        nb_states = self.env.nb_s
-        nb_actions = self.env.nb_a
-        self.agent = DDPG(nb_states, nb_actions, TP_args)
-        self.agent.load_weights(model_path)
-        self.agent.is_training = False
-        self.agent.eval()
-        self.policy = lambda x: self.agent.select_action(x, decay_epsilon=False)
-        
-    def init_BC(self):
-        msg = "Initializing BC Module..."
-        prGreen(msg)
-        from BC_module.parser import add_parser
-        from sklearn.svm import OneClassSVM
-        import joblib
-        self.BC_args = add_parser()
-        BC_model_path = './BC_module/weights/osvm.pkl'
-        self.classifier = joblib.load(BC_model_path)
-        self.ID_counter = {}
-
-    def init_OT(self):
-        msg = "Initializing OT Module..."
-        prGreen(msg)
-        from OT_module.main import inference, set_opt
-        # from OT_module.yolact_edge_project.eval import load_yolact_edge
-        self.inference_ptr = inference
-        self.OT_args = set_opt()
-        # self.yolact_edge_model = load_yolact_edge()
 
     def MOT_run(self, frame, frame_id, format):
         from MOT_module import yolo_detect
@@ -110,7 +70,28 @@ class DrivingBehaviorSystem:
         else:
             print("MOT outputs is None.")
         self.MOT_result = results
-    
+    # ========================= TP module code ==========================
+    def init_TP(self):
+        msg = "Initializing TP Module..."
+        prGreen(msg)
+        from TP_module.ddpg import DDPG
+        from TP_module import env as Env
+        from TP_module import parser as TP_parser
+        TP_args = TP_parser.get_parser()
+        TP_args.actor = "seq2seq"
+        print(TP_args.actor)
+        model_path = './TP_module/weights/' + TP_args.actor
+        # TP_args.actor = 'LSTM'
+        self.env = Env.environment(data_select=TP_args.mode, mode='test', args=TP_args)
+        self.traj_len_required = self.env.nb_t 
+        nb_states = self.env.nb_s
+        nb_actions = self.env.nb_a
+        self.agent = DDPG(nb_states, nb_actions, TP_args)
+        self.agent.load_weights(model_path)
+        self.agent.is_training = False
+        self.agent.eval()
+        self.policy = lambda x: self.agent.select_action(x, decay_epsilon=False)
+            
     def update_traj(self):
         data = self.MOT_result
         frame = {}
@@ -125,25 +106,6 @@ class DrivingBehaviorSystem:
             self.ID_counter[id] += 1
         self.traj.append(frame)
         # print("Update Traj Finished.")
-
-    def load_seq2seq(self):
-        from TP_module.seq2seq import Encoder, Decoder, Seq2Seq
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        INPUT_DIM = 2
-        OUTPUT_DIM = 2
-        ENC_EMB_DIM = 256
-        DEC_EMB_DIM = 256
-        HID_DIM = 512
-        N_LAYERS = 2
-        ENC_DROPOUT = 0.5
-        DEC_DROPOUT = 0.5
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
-        dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
-        self.model = Seq2Seq(enc, dec, device).to(device)
-        model_weight_path = 'TP_module/weights/LSTM/best.pt'
-        self.model.load_state_dict(torch.load(model_weight_path))
-        self.model.eval() 
 
     def predict_traj(self, traj):
         # read last k traj to predict
@@ -186,7 +148,17 @@ class DrivingBehaviorSystem:
         self.ID_counter = {}
         self.future_trajs = {}
 
- # ==============================================================================================
+    # ========================= BC module code ==========================
+    def init_BC(self):
+        msg = "Initializing BC Module..."
+        prGreen(msg)
+        from BC_module.parser import add_parser
+        from sklearn.svm import OneClassSVM
+        import joblib
+        self.BC_args = add_parser()
+        BC_model_path = './BC_module/weights/osvm.pkl'
+        self.classifier = joblib.load(BC_model_path)
+        self.ID_counter = {}
 
     def BC_preprocess(self):
         # final shape we should get:
@@ -252,36 +224,51 @@ class DrivingBehaviorSystem:
             # self.traj_reset()
             self.traj_reset_flag = True
             # TO DO: needs to Conbine past traj and future traj. 
+    # ========================= OT module code ==========================
+    def init_OT(self):
+        msg = "Initializing OT Module..."
+        prGreen(msg)
+        from OT_module.main import inference, set_opt
+        self.inference_ptr = inference
+        self.OT_args = set_opt()
+
+        # from OT_module.yolact_edge_project.eval import load_yolact_edge
+        # self.yolact_edge_model = load_yolact_edge()
 
     def OT_run(self, frame):
         flag = self.inference_ptr(self.objdet_outputs, frame)
         return flag
-
+    # ========================= Other small function code ==========================
     def show(self, frame):
         bbox = self.MOT_result
         traj_flag = False
+        # Draw bounding box & agent ID
         for id in bbox.keys():
             x1, y1, offset_x, offset_y = bbox[id]
             x2, y2 = x1 + offset_x, y1 + offset_y
             cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,255), 2)
             cv2.putText(frame, str(id), (int(x1), int(y1)), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255),
                     thickness=1)
-        # draw past traj
+        # Draw trajectory using point
         try:
+            # Draw past traj
             for f in self.traj:
                 for k, v in f.items():
                     cv2.circle(frame, (int(v[0]), int(v[1])), 3, (0,0,255), -1)
-            # draw future traj
+            # Draw future traj
             for k, v in self.future_trajs.items():
                 traj_flag = True
                 for x, y in v:
                     cv2.circle(frame, (int(x), int(y)), 3, (255,0,0), -1)
             cv2.imshow('t', frame)
-            wk = 1
-            if traj_flag:
-                wk = 0
+            # wk = 1
+            # if traj_flag:
+            #     wk = 0
+            wk = 0 if traj_flag else 1
+
             if cv2.waitKey(wk) == 27:
-                return True 
-                print("ESC pressed.")            
+                return True
+            
+            print("ESC pressed.")
         except:
-            print("Something Wrong...")
+            print("Something Wrong... Except Happened!!!!!!!!!!")
