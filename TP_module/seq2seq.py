@@ -3,9 +3,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-# from torchtext.legacy.datasets import Multi30k
-# from torchtext.legacy.data import Field, BucketIterator
-
 import numpy as np
 
 import random
@@ -105,7 +102,7 @@ class Seq2Seq(nn.Module):
         assert encoder.n_layers == decoder.n_layers, \
             "Encoder and decoder must have equal number of layers!"
 
-    def forward(self, x, len,  teacher_forcing_ratio = 0.5):
+    def forward(self, x, len = 1,  teacher_forcing_ratio = 0.5):
         """
         x = [observed sequence len, batch size, feature size]
         y = [target sequence len, batch size, feature size]
@@ -115,11 +112,13 @@ class Seq2Seq(nn.Module):
         teacher_forcing_ratio is probability of using teacher forcing
         e.g. if teacher_forcing_ratio is 0.75 we use ground-truth inputs 75% of the time
         """
+        
+        x = torch.reshape(x, (x.shape[0], -1, 2)).permute(1, 0, 2)
         batch_size = x.shape[1]
         target_len = len
         
         # tensor to store decoder outputs of each time step
-        outputs = torch.zeros(x.shape).to(self.device)
+        # outputs = torch.zeros(x.shape).to(self.device)
         
         # last hidden state of the encoder is used as the initial hidden state of the decoder
         output, (hidden, cell) = self.encoder(x)
@@ -132,7 +131,7 @@ class Seq2Seq(nn.Module):
             # run decode for one time step
             output, hidden, cell = self.decoder(decoder_input, hidden, cell)
             # place predictions in a tensor holding predictions for each time step
-            outputs[i] = output
+            # outputs[i] = output
 
             # decide if we are going to use teacher forcing or not
             teacher_forcing = random.random() < teacher_forcing_ratio
@@ -142,4 +141,9 @@ class Seq2Seq(nn.Module):
             # teacher_forcing is true or not
             # decoder_input = y[i] if teacher_forcing else output
             decoder_input = output
-        return outputs # torch.mean(hidden_return, dim=0) 
+        # print("output.shape: ", output.shape)
+        # print(outputs.shape)
+        # outputs = torch.permute(outputs, (1, 0, 2))
+        # outputs = torch.reshape(outputs, (outputs.shape[0], -1))
+        # return outputs # torch.mean(hidden_return, dim=0) 
+        return output

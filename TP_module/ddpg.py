@@ -5,13 +5,33 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 
-# from TP_module.model import (Actor, Critic, Actor_LSTM)
-from TP_module.model_offline import (Actor, Critic, Actor_LSTM)
+from TP_module.model import (Actor, Critic, Actor_LSTM)
 from TP_module.memory import SequentialMemory
 from TP_module.random_process import OrnsteinUhlenbeckProcess
 from TP_module.util import *
 
 # from ipdb import set_trace as debug
+
+def load_seq2seq():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    from TP_module.seq2seq import Seq2Seq, Encoder, Decoder
+    INPUT_DIM = 2
+    OUTPUT_DIM = 2
+    ENC_EMB_DIM = 256
+    DEC_EMB_DIM = 256
+    HID_DIM = 512
+    N_LAYERS = 2
+    ENC_DROPOUT = 0.5
+    DEC_DROPOUT = 0.5
+
+    enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
+    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+    actor = Seq2Seq(enc, dec, device)
+
+    enc_trg = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
+    dec_trg = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+    actor_target = Seq2Seq(enc_trg, dec_trg, device)
+    return actor, actor_target
 
 criterion = nn.MSELoss()
 
@@ -33,9 +53,12 @@ class DDPG(object):
         if args.actor == 'LSTM':
             self.actor = Actor_LSTM()
             self.actor_target = Actor_LSTM()
+        elif args.actor == 'seq2seq':
+            self.actor, self.actor_target = load_seq2seq()
         else:
             self.actor = Actor(self.nb_states, self.nb_actions, **net_cfg)
             self.actor_target = Actor(self.nb_states, self.nb_actions, **net_cfg)
+
         self.actor_optim  = Adam(self.actor.parameters(), lr=args.prate)
 
         self.critic = Critic(self.nb_states, self.nb_actions, **net_cfg)
@@ -146,14 +169,13 @@ class DDPG(object):
 
     def load_weights(self, output):
         if output is None: return
-        s = '_best'
-        # s = ''
+
         self.actor.load_state_dict(
-            torch.load('{}/actor{}.pkl'.format(output, s))
+            torch.load('{}/actor_best.pkl'.format(output))
         )
 
         self.critic.load_state_dict(
-            torch.load('{}/critic{}.pkl'.format(output, s))
+            torch.load('{}/critic_best.pkl'.format(output))
         )
 
 
@@ -177,7 +199,7 @@ class DDPG(object):
                 '{}/critic.pkl'.format(output)
             )
 
-    def seed(self,s):
+    def seed(self, s):
         torch.manual_seed(s)
         if USE_CUDA:
             torch.cuda.manual_seed(s)

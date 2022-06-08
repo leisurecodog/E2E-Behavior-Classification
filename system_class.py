@@ -26,10 +26,8 @@ class DrivingBehaviorSystem:
 
     def init_MOT(self):
         msg = "Initializing MOT Module..."
-        # print("Initializing MOT Module...")
-        # logging.critical("Initializing MOT Module...")
-        # import necessary package
         prGreen(msg)
+        # import necessary package
         from MOT_module.tools.demo_track_yolov5 import make_parser as parser_MOT
         from MOT_module.tracker.byte_tracker import BYTETracker
         from MOT_module.tools.demo_track_yolov5 import load_yolov5
@@ -45,7 +43,7 @@ class DrivingBehaviorSystem:
         from TP_module import env as Env
         from TP_module import parser as TP_parser
         TP_args = TP_parser.get_parser()
-        TP_args.actor = "LSTM"
+        TP_args.actor = "seq2seq"
         print(TP_args.actor)
         model_path = './TP_module/weights/' + TP_args.actor
         # TP_args.actor = 'LSTM'
@@ -128,6 +126,25 @@ class DrivingBehaviorSystem:
         self.traj.append(frame)
         # print("Update Traj Finished.")
 
+    def load_seq2seq(self):
+        from TP_module.seq2seq import Encoder, Decoder, Seq2Seq
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        INPUT_DIM = 2
+        OUTPUT_DIM = 2
+        ENC_EMB_DIM = 256
+        DEC_EMB_DIM = 256
+        HID_DIM = 512
+        N_LAYERS = 2
+        ENC_DROPOUT = 0.5
+        DEC_DROPOUT = 0.5
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
+        dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+        self.model = Seq2Seq(enc, dec, device).to(device)
+        model_weight_path = 'TP_module/weights/LSTM/best.pt'
+        self.model.load_state_dict(torch.load(model_weight_path))
+        self.model.eval() 
+
     def predict_traj(self, traj):
         # read last k traj to predict
         init_state = traj[-self.traj_len_required:]
@@ -143,36 +160,10 @@ class DrivingBehaviorSystem:
             next_state = np.concatenate((current_state[2:], np.asarray(next_traj, dtype=np.float32)), axis=0)
             current_state = next_state
         return future_traj
-        from TP_module.seq2seq import Encoder, Decoder, Seq2Seq
-        INPUT_DIM = 2
-        OUTPUT_DIM = 2
-        ENC_EMB_DIM = 512
-        DEC_EMB_DIM = 512
-        HID_DIM = 512
-        N_LAYERS = 2
-        ENC_DROPOUT = 0.1
-        DEC_DROPOUT = 0.1
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
-        dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
-        model = Seq2Seq(enc, dec, device).to(device)
-        model_weight_path = 'TP_module/weights/LSTM/best.pt'
-        model.load_state_dict(torch.load(model_weight_path))
-        model.eval()
-        init_state = np.array(init_state).reshape((-1, 2))
-        # print(init_state)
-        init_state = torch.tensor(init_state).unsqueeze(1)
-        init_state = init_state.to(torch.float32)
-        pred = model(init_state, self.traj_len_required)
-        pred = pred.squeeze(0).cpu().detach().numpy()
-        future_traj = pred
-        # print(future_traj[0])
-        # return future_traj[0]
 
     def get_future_traj(self):
         if not self.is_enough_tarj():
             return None
-
         self.future_trajs = {}
         traj_id = []
         for k, v in self.ID_counter.items():
