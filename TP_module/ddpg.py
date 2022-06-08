@@ -169,13 +169,13 @@ class DDPG(object):
 
     def load_weights(self, output):
         if output is None: return
-
+        select_str = ''
         self.actor.load_state_dict(
-            torch.load('{}/actor_best.pkl'.format(output))
+            torch.load('{}/actor{}.pkl'.format(output, select_str))
         )
 
         self.critic.load_state_dict(
-            torch.load('{}/critic_best.pkl'.format(output))
+            torch.load('{}/critic{}.pkl'.format(output, select_str))
         )
 
 

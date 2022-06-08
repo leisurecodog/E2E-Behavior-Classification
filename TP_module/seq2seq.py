@@ -112,7 +112,7 @@ class Seq2Seq(nn.Module):
         teacher_forcing_ratio is probability of using teacher forcing
         e.g. if teacher_forcing_ratio is 0.75 we use ground-truth inputs 75% of the time
         """
-        
+        nums = 3
         x = torch.reshape(x, (x.shape[0], -1, 2)).permute(1, 0, 2)
         batch_size = x.shape[1]
         target_len = len
@@ -125,8 +125,8 @@ class Seq2Seq(nn.Module):
 
         hidden_return = output
         # first input to decoder is last coordinates of x
+        # decoder_input = x[-nums:, :, :]
         decoder_input = x[-1, :, :]
-        
         for i in range(target_len):
             # run decode for one time step
             output, hidden, cell = self.decoder(decoder_input, hidden, cell)
@@ -146,4 +146,7 @@ class Seq2Seq(nn.Module):
         # outputs = torch.permute(outputs, (1, 0, 2))
         # outputs = torch.reshape(outputs, (outputs.shape[0], -1))
         # return outputs # torch.mean(hidden_return, dim=0) 
+        # if nums != 1:
+            # return output[-1]
         return output
+

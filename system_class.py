@@ -260,15 +260,16 @@ class DrivingBehaviorSystem:
                 traj_flag = True
                 for x, y in v:
                     cv2.circle(frame, (int(x), int(y)), 3, (255,0,0), -1)
-            cv2.imshow('t', frame)
             # wk = 1
             # if traj_flag:
             #     wk = 0
+
+            # wk: if future_traj is drawn, then waitkey set 0 to good visualization.
             wk = 0 if traj_flag else 1
 
-            if cv2.waitKey(wk) == 27:
+            cv2.imshow('t', frame)
+            if cv2.waitKey(wk) == 27: # whether is pressed ESC key.
+                print("ESC pressed.")
                 return True
-            
-            print("ESC pressed.")
         except:
             print("Something Wrong... Except Happened!!!!!!!!!!")

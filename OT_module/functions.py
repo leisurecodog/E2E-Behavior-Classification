@@ -5,78 +5,78 @@ import cv2
 
 # from torch._C import int32
 
-class Arrow:
-    def __init__(self, wid=None, hei=None):
-        self.center_x = 0
-        self.center_y = 0
-        self.horizonMove = 0
-        self.rotateAngle = 0
-        self.currentAngle = 0
-        self.height = 0
-        self.width = 0
+# class Arrow:
+#     def __init__(self, wid=None, hei=None):
+#         self.center_x = 0
+#         self.center_y = 0
+#         self.horizonMove = 0
+#         self.rotateAngle = 0
+#         self.currentAngle = 0
+#         self.height = 0
+#         self.width = 0
 
-    def get_shape(self):
-        res = []
-        if(self.horizonMove > 0):
-            self.center_x += 1
-            self.horizonMove -= 1
+#     def get_shape(self):
+#         res = []
+#         if(self.horizonMove > 0):
+#             self.center_x += 1
+#             self.horizonMove -= 1
         
-        elif(self.horizonMove < 0):
-            self.center_x -= 1
-            self.horizonMove =+ 1
-        res = [
-            [0+self.center_x, 0+self.center_y],
-            [-self.width/2 + self.center_x, self.height+self.center_y],
-            [0+self.center_x, 0+self.center_y + self.height/2],
-            [self.width/2 + self.center_x, self.height+self.center_y]]
-        return np.array(res)
+#         elif(self.horizonMove < 0):
+#             self.center_x -= 1
+#             self.horizonMove =+ 1
+#         res = [
+#             [0+self.center_x, 0+self.center_y],
+#             [-self.width/2 + self.center_x, self.height+self.center_y],
+#             [0+self.center_x, 0+self.center_y + self.height/2],
+#             [self.width/2 + self.center_x, self.height+self.center_y]]
+#         return np.array(res)
 
-    def set_WH(self, wid, hei):
-        self.width = wid
-        self.height = hei
+#     def set_WH(self, wid, hei):
+#         self.width = wid
+#         self.height = hei
 
-    def set_position(self, pos):
-        if(self.center_x == 0 and self.center_y == 0):
-            self.center_x = pos[0]
-            self.center_y = pos[1]
-        else:
-            bias = pos[0] - self.center_x;
-            if((self.horizonMove < 0 and bias <0) or (self.horizonMove > 0 and bias > 0)):
-                self.horizonMove = (max(self.horizonMove,  bias) if bias < 0 else min(self.horizonMove, bias))
+#     def set_position(self, pos):
+#         if(self.center_x == 0 and self.center_y == 0):
+#             self.center_x = pos[0]
+#             self.center_y = pos[1]
+#         else:
+#             bias = pos[0] - self.center_x;
+#             if((self.horizonMove < 0 and bias <0) or (self.horizonMove > 0 and bias > 0)):
+#                 self.horizonMove = (max(self.horizonMove,  bias) if bias < 0 else min(self.horizonMove, bias))
             
-            else:
-                self.horizonMove += bias
+#             else:
+#                 self.horizonMove += bias
             
-    def get_center(self):
-        return (self.center_x, self.center_y)
+#     def get_center(self):
+#         return (self.center_x, self.center_y)
 
-    def get_WH(self):
-        return (self.width, self.height)
+#     def get_WH(self):
+#         return (self.width, self.height)
 
-    def get_rotate_angle(self):
-        return self.currentAngle
+#     def get_rotate_angle(self):
+#         return self.currentAngle
     
-    def update_rotate_angle(self):
-        if(self.currentAngle < self.rotateAngle):
-            self.currentAngle += 1
-        elif(self.currentAngle > self.rotateAngle):
-            self.currentAngle -= 1
+#     def update_rotate_angle(self):
+#         if(self.currentAngle < self.rotateAngle):
+#             self.currentAngle += 1
+#         elif(self.currentAngle > self.rotateAngle):
+#             self.currentAngle -= 1
             
-    def set_rotate_angle(self, angle):
-        self.rotateAngle = angle
+#     def set_rotate_angle(self, angle):
+#         self.rotateAngle = angle
 
-    def stop_move(self):
-        self.horizonMove = 0
+#     def stop_move(self):
+#         self.horizonMove = 0
 
-    def get_color(self, state):
-        if(state == False):
-            return (255, 255, 0)
-        else:
-            return (0, 0, 255)
+#     def get_color(self, state):
+#         if(state == False):
+#             return (255, 255, 0)
+#         else:
+#             return (0, 0, 255)
     
-    def overtaking_arrow(self, shape):
-        w, h = shape
-        overtaking_mat = np.zeros((w,h),)
+#     def overtaking_arrow(self, shape):
+#         w, h = shape
+#         overtaking_mat = np.zeros((w,h),)
 
 # =========================================================================================
 
