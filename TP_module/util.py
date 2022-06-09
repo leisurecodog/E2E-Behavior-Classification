@@ -7,7 +7,14 @@ USE_CUDA = torch.cuda.is_available()
 FLOAT = torch.cuda.FloatTensor if USE_CUDA else torch.FloatTensor
 
 def prRed(prt): print("\033[91m {}\033[00m" .format(prt))
-def prGreen(prt): print("\033[92m {}\033[00m" .format(prt))
+# def prGreen(prt): print("\033[92m {}\033[00m" .format(prt))
+def prGreen(prt):
+    import datetime
+    e = datetime.datetime.now()
+    date_str = "{}/{}/{}".format(e.month, e.day, e.year)
+    time_str = "{}:{}:{}".format(e.hour, e.minute, e.second)
+    total_str = "[{} {}] {}".format(date_str, time_str, prt)
+    print("\033[92m{}\033[00m" .format(total_str))
 def prYellow(prt): print("\033[93m {}\033[00m" .format(prt))
 def prLightPurple(prt): print("\033[94m {}\033[00m" .format(prt))
 def prPurple(prt): print("\033[95m {}\033[00m" .format(prt))

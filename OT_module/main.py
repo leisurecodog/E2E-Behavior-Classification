@@ -28,14 +28,34 @@ lane_agent.load_weights(895, "tensor(0.5546)")
 
 OTS = functions.overtaking_system()
 
+import torch.multiprocessing as mp
+manager = mp.Manager()
+return_dict = manager.dict()
+
+# def worker(model, name, *params):
+    # print(name, params)
+    # if name == "pinet":
+        # x, y = model(params)
+        # print(x, y)
+        # return_dict[name] = [x, y]
+        # print(return_dict)
+    # elif name == 'yolact':
+        # net_pred = model(params)
+        # print(net_pred)
+        # return_dict[name] = net_pred
+        # print(return_dict)
+
 def inference(objdet=None, frame=None):
     global f_shape, f_type, imgsz
     draw_laneline_flag = False
     transform = FastBaseTransform()
     moving_statistics = {"conf_hist": []}
     f_shape = frame.shape
+    print(f_shape)
+
     f_type = frame.dtype
     # get lane line
+
     x_coord, y_coord = PInet_test(lane_agent, frame)
 
     center_x = f_shape[1] / 2 # get image center
@@ -49,19 +69,28 @@ def inference(objdet=None, frame=None):
         for i in range(len(OTS.right_lane[0])):
             x, y = OTS.right_lane[:, i]
             cv2.circle(frame, (int(x), int(y)), 2, (255,255,255), 2)
-    # for i in range(len(objdet)):
-    #     x1, y1 = objdet[i][:2]
-    #     x2, y2 = objdet[i][2:4]
-    #     cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,255))
+    for i in range(len(objdet)):
+        x1, y1 = objdet[i][:2]
+        x2, y2 = objdet[i][2:4]
+        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,255))
 
 
     start_time = time.time() # calculate performance time
-
+    
     frame_tensor = torch.from_numpy(frame).cuda().float()
     batch = FastBaseTransform()(frame_tensor.unsqueeze(0))
     extras = {"backbone": "full", "interrupt": False, "keep_statistics": False,"moving_statistics": moving_statistics}
+
     with torch.no_grad():
+        # p1 = mp.Process(target=worker, args=(lane_agent, 'pinet', frame,))
+        # p2 = mp.Process(target=worker, args=(yolact_model, 'yolact', batch, extras))
+        # p1.start()
+        # p1.join()
+        # p2.start()
+        
+        # p2.join()
         net_outs = yolact_model(batch, extras=extras) # yolact edge detect lane mask
+    print("Return dict is: ", return_dict) 
     preds = net_outs["pred_outs"]
     # get lane mask
     lane_mask = prep_display(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
@@ -81,4 +110,3 @@ def set_opt():
     opt.add_argument('--save_video', action='store_false')
     opt.add_argument('--video_path', type=str, default='201126152425.MOV')
     return opt.parse_args()
-    

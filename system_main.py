@@ -1,7 +1,7 @@
 from os import system
+import torch.multiprocessing as mp
+# mp.set_start_method('spawn')
 import cv2
-import system_parser
-import system_class
 from system_UI import MyDialog
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QGridLayout, QLabel, QPushButton, QWidget
@@ -21,7 +21,6 @@ def run():
         ret_val, frame = cap.read()
       # start working when have image.
         if ret_val:
-            futures = None
             if sys_args.resize:
                 frame = cv2.resize(frame,(sys_args.size))
             # bounding box and ID infomation
@@ -36,15 +35,14 @@ def run():
             stop_flag = System.OT_run(frame)
             if stop_flag:
                 break
-            flag = False
+            stop_flag = False
             if sys_args.show:
-                flag = System.show(frame)
-            if flag:
+                stop_flag = System.show(frame)
+            if stop_flag:
                 break
             frame_id += 1
             if System.traj_reset_flag:
                 System.traj_reset()
-                System.traj_reset_flag = False
         else:
             print("video is end.")
             break
@@ -57,15 +55,37 @@ def window():
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    import threading
-    t_list = []
+    # import torch.multiprocessing as mp
+    # mp.set_start_method('spawn')
+    import system_parser
+    import system_class
+    # import threading
+    # import numpy as np
+    # import torch
+    # from OT_module.yolact_edge_project.utils.augmentations import FastBaseTransform
+    # t_list = []
+    # from OT_module.yolact_edge_project.eval import load_yolact_edge, prep_display
+    # frame = np.zeros((640,480,3))
+    # print(frame.shape)
+    # frame_tensor = torch.from_numpy(frame).cuda().float()
+    # batch = FastBaseTransform()(frame_tensor.unsqueeze(0))
+    # moving_statistics = {"conf_hist": []}
+    # extras = {"backbone": "full", "interrupt": False, "keep_statistics": False,"moving_statistics": moving_statistics}
+
+    # yolact = load_yolact_edge()
+    # yolact.detect.use_fast_nms = True
+    # for i in range(10):
+        # p = mp.Process(target=yolact, args=(batch, extras,))
+        # p.start()
+        # p.join()
+    run()
     # t_ui = threading.Thread(target=window)
     # t_list.append(t_ui)
     
-    t_sys = threading.Thread(target=run)
-    t_list.append(t_sys)
+    # t_sys = threading.Thread(target=run)
+    # t_list.append(t_sys)
 
-    for t in t_list:
-        t.start()
-    for t in t_list:
-        t.join()
+    # for t in t_list:
+        # t.start()
+    # for t in t_list:
+        # t.join()
