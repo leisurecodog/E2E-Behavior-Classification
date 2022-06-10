@@ -105,7 +105,6 @@ class overtaking_system:
         for i in range(len(self.left_lane[0])):
             left_x = self.left_lane[0][i]
             right_x = self.right_lane[0][i]
-
             if left_x > right_x:
                 continue
             else:
@@ -118,6 +117,8 @@ class overtaking_system:
 
         self.left_lane = self.left_lane[:, final_top_idx:l_idx]
         self.right_lane = self.right_lane[:, final_top_idx:r_idx]
+        if self.left_lane.shape[1] == 0 or self.right_lane.shape[1] == 0:
+            self.both_lane_flag = False
 
     def set_lane(self, lanes, center):
         self.left_lane = None
@@ -137,10 +138,14 @@ class overtaking_system:
                     self.right_lane = [x_coord[i], y_coord[i]]
             else:
                 print("Lane {i} Setting Error ".format(i))
-
+        
         if self.left_lane is not None and self.right_lane is not None:
-            self.update_lane()
+
             self.both_lane_flag = True
+            self.update_lane()
+            
+            # print(len(self.left_lane[0]), len(self.left_lane[1]))
+            # print(len(self.right_lane[0]), len(self.right_lane[1]))
             
 
     def set_msg(self, res_flag):
@@ -154,14 +159,14 @@ class overtaking_system:
         else:
             self.msg = "You don't need to overtake."
 
-    def find_nearest_idx(self, value):
+    def find_nearest_idx(self, value): 
+        
         l_idx = np.abs(self.left_lane[1] - value).argmin()
         r_idx = np.abs(self.right_lane[1] - value).argmin()
         return (l_idx, r_idx)
 
     def overlap_ratio(self, bb):
         # bb: [left_top, right_bottom, ?, ?]
-
         flag = 0 # flag: -1 mean bb on left of lane, 0 mean middle, 1 mean right of lane
         bbWid = bb[2] - bb[0] # calculate bottom width of bounding box.
         bb_bottom = bb[3]
@@ -191,18 +196,21 @@ class overtaking_system:
             ratio = 100.0
         return (flag, ratio)
 
-    def detect_lane_available(self):
+    def detect_lane_available(self, frame=None):
         split = 10
-        devide = len(self.left_lane) // split
-        left_lane_idx = [len(self.left_lane) - i*devide for i in range(split)]
-        devide = len(self.right_lane) // split
-        right_lane_idx = [len(self.right_lane) - i*devide for i in range(split)]
+        devide = len(self.left_lane[0]) // split
+        left_lane_idx = [len(self.left_lane[0])-1 - i*devide for i in range(split)]
+        devide = len(self.right_lane[0]) // split
+        right_lane_idx = [len(self.right_lane[0])-1 - i*devide for i in range(split)]
         overlap_left = []
         overlap_right = []
         threshold_list = []
         for i in range(split):
             coord_left_x, coord_left_y = self.left_lane[:, left_lane_idx[i]]
             coord_right_x, coord_right_y = self.right_lane[:, right_lane_idx[i]]
+            if frame is not None:
+                cv2.circle(frame, (int(coord_left_x),int(coord_left_y)), 2, (255,255,0), 2)
+                cv2.circle(frame, (int(coord_right_x),int(coord_right_y)), 2, (255,255,0), 2)
             threshold = coord_right_x - coord_left_x
             threshold_list.append(threshold)
             bias = 5 # calculate sum of left and right not from center of line
@@ -233,23 +241,24 @@ class overtaking_system:
 
         self.detect_result = (res_l, res_r)   
 
-    def detect_overtaking(self, bbs, lane_mask):
+    def detect_overtaking(self, bbs, lane_mask, frame=None):
         if not self.both_lane_flag:
-            # print("Overtaking System is not ready.......")
             self.running = True
             self.set_msg(0)
             return
+
         self.lane_mask = lane_mask
         overlap_ratio = 40.0
         obj_flag = False
+        # print(self.both_lane_flag)
         for i in range(len(bbs)):
             (flag, ratio) = self.overlap_ratio(bbs[i])
             if ratio > overlap_ratio:
                 obj_flag = True
                 break
 
-        self.detect_lane_available()
         if obj_flag:
+            self.detect_lane_available(frame)
             self.running = True
             (l_flag, r_flag) = self.detect_result
             if l_flag and r_flag:

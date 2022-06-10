@@ -230,8 +230,8 @@ class DrivingBehaviorSystem:
         self.OT_args = set_opt()
 
     def OT_run(self, frame):
-        flag = self.inference_ptr(self.objdet_outputs, frame)
-        return flag
+        frame = self.inference_ptr(self.objdet_outputs, frame)
+        return frame
     # ========================= Other small function code ==========================
     def show(self, frame):
         bbox = self.MOT_result
@@ -268,6 +268,7 @@ class DrivingBehaviorSystem:
             # wk: if future_traj is drawn, then waitkey set 0 for better visualization.
             wk = 0 if future_traj_flag else 1
             cv2.imshow('t', frame)
+            wk = 0 
             if cv2.waitKey(wk) == 27: # whether is pressed ESC key.
                 print("ESC pressed.")
                 return True

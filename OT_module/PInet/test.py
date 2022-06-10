@@ -209,5 +209,5 @@ def sort_along_y(x, y):
     
     return out_x, out_y
 
-if __name__ == '__main__':
-    Testing()
+# if __name__ == '__main__':
+#     Testing()

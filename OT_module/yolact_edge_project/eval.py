@@ -1295,5 +1295,5 @@ def load_yolact_edge():
         return net
         # evaluate(net, dataset)
 
-if __name__ == '__main__':
-    load_yolact_edge()
+# if __name__ == '__main__':
+#     load_yolact_edge()

@@ -47,11 +47,10 @@ return_dict = manager.dict()
 
 def inference(objdet=None, frame=None):
     global f_shape, f_type, imgsz
-    draw_laneline_flag = False
+    draw_laneline_flag = True
     transform = FastBaseTransform()
     moving_statistics = {"conf_hist": []}
     f_shape = frame.shape
-    print(f_shape)
 
     f_type = frame.dtype
     # get lane line
@@ -74,7 +73,6 @@ def inference(objdet=None, frame=None):
         x2, y2 = objdet[i][2:4]
         cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,255))
 
-
     start_time = time.time() # calculate performance time
     
     frame_tensor = torch.from_numpy(frame).cuda().float()
@@ -90,17 +88,15 @@ def inference(objdet=None, frame=None):
         
         # p2.join()
         net_outs = yolact_model(batch, extras=extras) # yolact edge detect lane mask
-    print("Return dict is: ", return_dict) 
     preds = net_outs["pred_outs"]
     # get lane mask
     lane_mask = prep_display(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
-    OTS.detect_overtaking(objdet, lane_mask)
+    if OTS.both_lane_flag:
+        OTS.detect_overtaking(objdet, lane_mask, frame)
 
-    # frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
-    # frame = cv2.putText(frame, OTS.msg, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
-    # cv2.imshow("te", frame)
-    # if cv2.waitKey(1) == 27:
-        # return True
+    frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
+    cv2.putText(frame, OTS.msg, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+    return frame
     
 
 def set_opt():

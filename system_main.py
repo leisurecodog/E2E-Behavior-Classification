@@ -32,9 +32,9 @@ def run():
 
             System.BC_run()
 
-            stop_flag = System.OT_run(frame)
-            if stop_flag:
-                break
+            frame = System.OT_run(frame)
+            # if stop_flag:
+                # break
             stop_flag = False
             if sys_args.show:
                 stop_flag = System.show(frame)
