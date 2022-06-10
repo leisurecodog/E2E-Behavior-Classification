@@ -58,7 +58,8 @@ def inference(objdet=None, frame=None):
     x_coord, y_coord = PInet_test(lane_agent, frame)
 
     center_x = f_shape[1] / 2 # get image center
-    OTS.set_lane([x_coord, y_coord], center_x)
+    if x_coord is not None and y_coord is not None:
+        OTS.set_lane([x_coord, y_coord], center_x)
     
     # draw lane after process
     if OTS.both_lane_flag and draw_laneline_flag:
@@ -68,10 +69,10 @@ def inference(objdet=None, frame=None):
         for i in range(len(OTS.right_lane[0])):
             x, y = OTS.right_lane[:, i]
             cv2.circle(frame, (int(x), int(y)), 2, (255,255,255), 2)
-    for i in range(len(objdet)):
-        x1, y1 = objdet[i][:2]
-        x2, y2 = objdet[i][2:4]
-        cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,255))
+    # for i in range(len(objdet)):
+        # x1, y1 = objdet[i][:2]
+        # x2, y2 = objdet[i][2:4]
+        # cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,255))
 
     start_time = time.time() # calculate performance time
     

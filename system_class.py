@@ -229,7 +229,7 @@ class DrivingBehaviorSystem:
         self.inference_ptr = inference
         self.OT_args = set_opt()
 
-    def OT_run(self, frame):
+    def OT_run(self, frame=None):
         frame = self.inference_ptr(self.objdet_outputs, frame)
         return frame
     # ========================= Other small function code ==========================
@@ -255,20 +255,20 @@ class DrivingBehaviorSystem:
         # Draw trajectory using point
         try:
             # Draw past traj
-            for f in self.traj:
-                for k, v in f.items():
-                    cv2.circle(frame, (int(v[0]), int(v[1])), 3, (0,0,255), -1)
+            if False:
+                for f in self.traj:
+                    for k, v in f.items():
+                        cv2.circle(frame, (int(v[0]), int(v[1])), 3, (0,0,255), -1)
             # Draw future traj
-            if self.future_trajs is not None:
+            if self.future_trajs is not None and False:
                 for k, v in self.future_trajs.items():
-                    future_traj_flag = True
                     for x, y in v:
                         cv2.circle(frame, (int(x), int(y)), 3, (255,0,0), -1)
 
             # wk: if future_traj is drawn, then waitkey set 0 for better visualization.
             wk = 0 if future_traj_flag else 1
             cv2.imshow('t', frame)
-            wk = 0 
+            # wk = 0 
             if cv2.waitKey(wk) == 27: # whether is pressed ESC key.
                 print("ESC pressed.")
                 return True

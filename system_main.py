@@ -7,7 +7,7 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QGridLayout, QLabel, QPushButton, QWidget
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
-
+import time
 g_frame = None
 
 def run():
@@ -22,25 +22,28 @@ def run():
       # start working when have image.
         if ret_val:
             if sys_args.resize:
-                frame = cv2.resize(frame,(sys_args.size))
+                frame = cv2.resize(frame, (sys_args.size))
             # bounding box and ID infomation
+            mot_time = time.time()
             System.MOT_run(frame, frame_id, format=sys_args.format_str)
 
             System.update_traj()
             if sys_args.future:
+                tp_time = time.time()
                 System.get_future_traj()
-
+            bc_time = time.time()
             System.BC_run()
+            ot_time = time.time()
+            System.OT_run(frame)
+            # frame = System.OT_run(frame) # for debug using.
 
-            frame = System.OT_run(frame)
-            # if stop_flag:
-                # break
             stop_flag = False
             if sys_args.show:
                 stop_flag = System.show(frame)
             if stop_flag:
                 break
             frame_id += 1
+            print(frame_id)
             if System.traj_reset_flag:
                 System.traj_reset()
         else:

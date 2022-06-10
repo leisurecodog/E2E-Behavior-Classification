@@ -89,7 +89,7 @@ class overtaking_system:
         self.overtake_path = []
         self.running = False
         self.msg = ""
-        self.variant = 0.5
+        self.variant = 0.4
         self.detect_result = (False, False)
 
     def set_center(self, pt):
@@ -103,6 +103,8 @@ class overtaking_system:
         self.right_lane = np.array(self.right_lane, dtype=np.int32)
         final_top_idx = -1
         for i in range(len(self.left_lane[0])):
+            # print(len(self.left_lane[0]))
+            # print(len(self.right_lane[0]))
             left_x = self.left_lane[0][i]
             right_x = self.right_lane[0][i]
             if left_x > right_x:
@@ -140,7 +142,9 @@ class overtaking_system:
                 print("Lane {i} Setting Error ".format(i))
         
         if self.left_lane is not None and self.right_lane is not None:
-
+            diff_lane = abs(len(self.left_lane[0]) - len(self.right_lane[0]))
+            if diff_lane > 50: # bad lane line detection, failed
+                return 
             self.both_lane_flag = True
             self.update_lane()
             
@@ -166,7 +170,7 @@ class overtaking_system:
         return (l_idx, r_idx)
 
     def overlap_ratio(self, bb):
-        # bb: [left_top, right_bottom, ?, ?]
+        # bb: [x1, y1, x2, y2]
         flag = 0 # flag: -1 mean bb on left of lane, 0 mean middle, 1 mean right of lane
         bbWid = bb[2] - bb[0] # calculate bottom width of bounding box.
         bb_bottom = bb[3]
@@ -178,19 +182,21 @@ class overtaking_system:
         if(bb[0] < left_x): # bounding box on the left of lane.
             flag = -1
             diff = float(bb[2]) - float(left_x)
-            if(diff < 0): # no overlapping
-                ratio = 0.0
-            else:
-                ratio = diff/bbWid * 100.0
+            ratio = 0.0 if diff < 0 else diff / bbWid * 100
+            # if(diff < 0): # no overlapping
+                # ratio = 0.0
+            # else:
+                # ratio = diff/bbWid * 100.0
         
         elif(bb[2] > right_x): # bounding box on the right of lane.
             flag = 1
             diff = float(right_x) - float(bb[0])
-            if(diff < 0): # no overlapping
-                ratio = 0.0
+            ratio = 0.0 if diff < 0 else diff / bbWid * 100
+            # if(diff < 0): # no overlapping
+                # ratio = 0.0
             
-            else:
-                ratio = diff/bbWid * 100.0
+            # else:
+                # ratio = diff/bbWid * 100.0
         else: # bounding box in the both lane.
             flag = 0
             ratio = 100.0
@@ -202,9 +208,9 @@ class overtaking_system:
         left_lane_idx = [len(self.left_lane[0])-1 - i*devide for i in range(split)]
         devide = len(self.right_lane[0]) // split
         right_lane_idx = [len(self.right_lane[0])-1 - i*devide for i in range(split)]
-        overlap_left = []
-        overlap_right = []
-        threshold_list = []
+        overlap_left = np.zeros(split)
+        overlap_right = np.zeros(split)
+        threshold_list = np.zeros(split)
         for i in range(split):
             coord_left_x, coord_left_y = self.left_lane[:, left_lane_idx[i]]
             coord_right_x, coord_right_y = self.right_lane[:, right_lane_idx[i]]
@@ -212,7 +218,7 @@ class overtaking_system:
                 cv2.circle(frame, (int(coord_left_x),int(coord_left_y)), 2, (255,255,0), 2)
                 cv2.circle(frame, (int(coord_right_x),int(coord_right_y)), 2, (255,255,0), 2)
             threshold = coord_right_x - coord_left_x
-            threshold_list.append(threshold)
+            threshold_list[i] = threshold
             bias = 5 # calculate sum of left and right not from center of line
             sum_left = 0
             sum_right = 0
@@ -221,13 +227,15 @@ class overtaking_system:
                     sum_left += 1
                 else:
                     break
-            overlap_left.append(sum_left)
+            overlap_left[i] = sum_left
             for j in range(coord_right_x+bias, self.lane_mask.shape[1]):
                 if self.lane_mask[coord_right_y][j][2] > 0:
                     sum_right += 1
                 else:
                     break
-            overlap_right.append(sum_right)
+            overlap_right[i] = sum_right
+        # True: can go
+        # False: can't go
         res_l = True
         res_r = True
         for i in range(split):
