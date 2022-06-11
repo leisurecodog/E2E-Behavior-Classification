@@ -11,6 +11,30 @@ from TP_module.random_process import OrnsteinUhlenbeckProcess
 from TP_module.util import *
 
 # from ipdb import set_trace as debug
+def load_Aseq():
+    from TP_module.ASeq2Seq import Encoder, Attention, Decoder, ASeq2Seq
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    INPUT_DIM = 2
+    OUTPUT_DIM = 2
+    ENC_EMB_DIM = 256
+    DEC_EMB_DIM = 256
+    ENC_HID_DIM = 512
+    DEC_HID_DIM = 512
+    ENC_DROPOUT = 0.5
+    DEC_DROPOUT = 0.5
+
+    attn = Attention(ENC_HID_DIM, DEC_HID_DIM)
+    enc = Encoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, ENC_DROPOUT)
+    dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, attn)
+
+    model = ASeq2Seq(enc, dec, device).to(device)
+
+    attn_t = Attention(ENC_HID_DIM, DEC_HID_DIM)
+    enc_t = Encoder(INPUT_DIM, ENC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, ENC_DROPOUT)
+    dec_t = Decoder(OUTPUT_DIM, DEC_EMB_DIM, ENC_HID_DIM, DEC_HID_DIM, DEC_DROPOUT, attn)
+
+    model_t = ASeq2Seq(enc, dec, device).to(device)
+    return model, model_t
 
 def load_seq2seq():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -55,6 +79,8 @@ class DDPG(object):
             self.actor_target = Actor_LSTM()
         elif args.actor == 'seq2seq':
             self.actor, self.actor_target = load_seq2seq()
+        elif args.actor == 'aseq':
+            self.actor, self.actor_target = load_Aseq()
         else:
             self.actor = Actor(self.nb_states, self.nb_actions, **net_cfg)
             self.actor_target = Actor(self.nb_states, self.nb_actions, **net_cfg)

@@ -79,6 +79,7 @@ class DrivingBehaviorSystem:
         from TP_module import parser as TP_parser
         TP_args = TP_parser.get_parser()
         TP_args.actor = "seq2seq"
+        # TP_args.actor = 'aseq'
         print(TP_args.actor)
         model_path = './TP_module/weights/' + TP_args.actor
         # TP_args.actor = 'LSTM'
@@ -123,7 +124,7 @@ class DrivingBehaviorSystem:
             next_state = np.concatenate((current_state[2:], np.asarray(next_traj, dtype=np.float32)), axis=0)
             current_state = next_state
         t2 = time.time()
-        print("TP time:", t2-t1)
+        # print("TP time:", t2-t1)
         return future_traj
 
     def get_future_traj(self):
@@ -256,14 +257,15 @@ class DrivingBehaviorSystem:
                     1, (255, 255, 0), thickness=1)
 
         # Draw trajectory using point
+        traj_show_flag = True
         try:
             # Draw past traj
-            if False:
+            if traj_show_flag:
                 for f in self.traj:
                     for k, v in f.items():
                         cv2.circle(frame, (int(v[0]), int(v[1])), 3, (0,0,255), -1)
             # Draw future traj
-            if self.future_trajs is not None and False:
+            if self.future_trajs is not None and traj_show_flag:
                 for k, v in self.future_trajs.items():
                     for x, y in v:
                         cv2.circle(frame, (int(x), int(y)), 3, (255,0,0), -1)
