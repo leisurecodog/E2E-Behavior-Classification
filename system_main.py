@@ -43,7 +43,7 @@ def run():
             if stop_flag:
                 break
             frame_id += 1
-            print(frame_id)
+            # print(frame_id)
             if System.traj_reset_flag:
                 System.traj_reset()
         else:

@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 from TP_module.util import prGreen
 import torch
-
+import time
 class DrivingBehaviorSystem:
     def __init__(self):
         """
@@ -114,6 +114,7 @@ class DrivingBehaviorSystem:
         # current_state: [x0, y0, x1, y1, .... x4, y4]
         current_state = np.array(init_state).reshape(-1)
         # get future trajectory that length is the same with trajectory history.
+        t1 = time.time()
         for _ in range(self.traj_len_required):
             # print(current_state)
             action = self.policy(current_state)
@@ -121,6 +122,8 @@ class DrivingBehaviorSystem:
             future_traj.append(next_traj)
             next_state = np.concatenate((current_state[2:], np.asarray(next_traj, dtype=np.float32)), axis=0)
             current_state = next_state
+        t2 = time.time()
+        print("TP time:", t2-t1)
         return future_traj
 
     def get_future_traj(self):

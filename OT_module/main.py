@@ -81,19 +81,15 @@ def inference(objdet=None, frame=None):
     extras = {"backbone": "full", "interrupt": False, "keep_statistics": False,"moving_statistics": moving_statistics}
 
     with torch.no_grad():
-        # p1 = mp.Process(target=worker, args=(lane_agent, 'pinet', frame,))
-        # p2 = mp.Process(target=worker, args=(yolact_model, 'yolact', batch, extras))
-        # p1.start()
-        # p1.join()
-        # p2.start()
-        
-        # p2.join()
         net_outs = yolact_model(batch, extras=extras) # yolact edge detect lane mask
     preds = net_outs["pred_outs"]
     # get lane mask
     lane_mask = prep_display(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
     if OTS.both_lane_flag:
+        t1 = time.time()
         OTS.detect_overtaking(objdet, lane_mask, frame)
+        t2 = time.time()
+        print("Overtaking time: ", t2-t1)
 
     frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
     cv2.putText(frame, OTS.msg, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
