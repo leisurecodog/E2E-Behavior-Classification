@@ -47,6 +47,7 @@ return_dict = manager.dict()
 
 def inference(objdet=None, frame=None):
     global f_shape, f_type, imgsz
+    st = time.time()
     draw_laneline_flag = True
     transform = FastBaseTransform()
     moving_statistics = {"conf_hist": []}
@@ -93,6 +94,8 @@ def inference(objdet=None, frame=None):
 
     frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
     cv2.putText(frame, OTS.msg, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+    if OTS.both_lane_flag:
+        print("OT time: ", time.time()-st)
     return frame
     
 

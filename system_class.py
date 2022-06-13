@@ -39,6 +39,7 @@ class DrivingBehaviorSystem:
 
     def MOT_run(self, frame, frame_id, format):
         from MOT_module import yolo_detect
+        st = time.time()
         img_info = {}
         results = {}
         outputs = yolo_detect.detect(self.object_predictor, self.imgsz, self.names, frame)
@@ -70,6 +71,7 @@ class DrivingBehaviorSystem:
         else:
             print("MOT outputs is None.")
         self.MOT_result = results
+        print("MOT time: ", time.time()-st)
     # ========================= TP module code ==========================
     def init_TP(self):
         msg = "Initializing TP Module..."
@@ -128,6 +130,7 @@ class DrivingBehaviorSystem:
         return future_traj
 
     def get_future_traj(self):
+        st = time.time()
         self.future_trajs = {}
         traj_id = []
         for k, v in self.ID_counter.items():
@@ -142,6 +145,9 @@ class DrivingBehaviorSystem:
                 self.future_trajs[k] = self.predict_traj(traj_id)
         if len(self.future_trajs) == 0:
             self.future_trajs = None
+        if self.future_trajs is not None:
+            print("TP time: ", time.time()-st)
+
     def traj_reset(self):
         self.traj = []
         self.ID_counter = {}
@@ -168,7 +174,6 @@ class DrivingBehaviorSystem:
         # final shape we should get:
         # video_list shape: [number of video, number of frame, number of IDs]
         # label_list shape: [number of video, 1, number of id]
-
         from BC_module.data_preprocess import id_normalize, mapping_list
         # calculate total id and make dictionary.
         fake_label_list = {}
@@ -202,7 +207,7 @@ class DrivingBehaviorSystem:
     def BC_run(self):
 
         hint_str = "Behavior Classification without future Trajectory."
-
+        st = time.time()
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
         if len(self.ID_counter) < self.BC_args.id_num or max(self.ID_counter.values()) < self.BC_required_len:
@@ -225,14 +230,15 @@ class DrivingBehaviorSystem:
         for k, v in self.mapping_list.items():
             self.BC_result[v] = res[k]
         # print(hint_str)
+        print("BC time: ", time.time()-st)
     # ========================= OT module code ==========================
     def init_OT(self):
         msg = "Initializing OT Module..."
         prGreen(msg)
         from OT_module.main import inference, set_opt
+        import OT_module
         self.inference_ptr = inference
         self.OT_args = set_opt()
-
     def OT_run(self, frame=None):
         frame = self.inference_ptr(self.objdet_outputs, frame)
         return frame
