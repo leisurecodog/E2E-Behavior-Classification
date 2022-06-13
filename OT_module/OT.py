@@ -9,6 +9,12 @@ class OT:
         from OT_module.main import inference, set_opt
         self.inference_ptr = inference
         self.OT_args = set_opt()
+        self.counter = 0
+        self.exe_time = 0
+
     def run(self, objdet, frame):
+        st = time.time()
         frame = self.inference_ptr(objdet, frame)
-        return frame
+        self.counter += 1
+        self.exe_time += (time.time() - st)
+        # return frame

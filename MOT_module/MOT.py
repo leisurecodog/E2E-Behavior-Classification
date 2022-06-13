@@ -13,6 +13,8 @@ class MOT:
         self.MOT_args = parser_MOT().parse_args()
         self.tracker = BYTETracker(self.MOT_args, frame_rate=self.MOT_args.fps)
         self.object_predictor, self.imgsz, self.names = load_yolov5(rt=True)
+        self.counter = 0
+        self.exe_time = 0
 
     def run(self, frame, frame_id, format):
         from MOT_module import yolo_detect
@@ -47,4 +49,7 @@ class MOT:
         else:
             print("MOT outputs is None.")
         self.result = results
-        print("MOT time: ", time.time()-st)
+        # print("MOT time: ", time.time()-st)
+        self.counter += 1
+        self.exe_time += (time.time() - st)
+        

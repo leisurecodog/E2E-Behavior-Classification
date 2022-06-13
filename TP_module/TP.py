@@ -27,6 +27,8 @@ class TP:
         self.traj = []
         self.ID_counter = {}
         self.future_trajs = None
+        self.counter = 0
+        self.exe_time = 0
 
     def update_traj(self, data):
         frame = {}
@@ -78,7 +80,9 @@ class TP:
 
         if self.future_trajs is not None:
             # calculate TP time when executing
-            print("TP time: ", time.time()-st)
+            # print("TP time: ", time.time()-st)
+            self.counter += 1
+            self.exe_time += (time.time() - st)
 
     def traj_reset(self):
         self.traj = []

@@ -17,9 +17,10 @@ def run():
       # ret_val: True -> Read image, False -> No image
       # frame: image frame.
         ret_val, frame = cap.read()
+        sys.reset = False
       # start working when have image.
         if ret_val:
-            print("===============================")
+            
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
             # bounding box and ID infomation
@@ -28,7 +29,9 @@ def run():
             sys.TP.update_traj(sys.MOT.result)
             if sys_args.future:
                 sys.TP.run()
-            sys.BC.run(sys.TP.ID_counter, sys.TP.traj, sys.TP.future_trajs)
+            if sys.BC.is_satisfacation(sys.TP.ID_counter):
+                sys.reset = True
+                sys.BC.run(sys.TP.traj, sys.TP.future_trajs)
             sys.OT.run(sys.MOT.objdet, frame)
             # frame = System.OT_run(frame) # for debug using.
 
@@ -37,12 +40,17 @@ def run():
             if stop_flag:
                 break
             frame_id += 1
-            # print(frame_id)
-            if sys.BC.reset_traj_flag:
+            
+            if sys.reset:
                 sys.TP.traj_reset()
         else:
             print("video is end.")
             break
+    print("MOT average time:", sys.MOT.exe_time/sys.MOT.counter)
+    print("TP average time:", sys.TP.exe_time/sys.TP.counter)
+    print("BC average time:", sys.BC.exe_time/sys.BC.counter)
+    print("OT average time:", sys.OT.exe_time/sys.OT.counter)
+
 def window():
     import sys
     app = QApplication(sys.argv)

@@ -15,11 +15,18 @@ class BC:
         self.traj_len_required = traj_len_required
         self.mapping_list = None
         self.result = None
-        self.reset_traj_flag = False
         self.BC_required_len = 20
+        self.counter = 0
+        self.exe_time = 0
         self.bbox_color = [(255, 255, 255), (0, 0, 255)]
 
-    def preprocess(self, top_k_ID, current, future):
+    def is_satisfacation(self, id_counter):
+        if len(id_counter) < self.BC_args.id_num or max(id_counter.values()) < self.BC_required_len:
+            return False
+        self.id_counter = id_counter
+        return True
+
+    def preprocess(self, current, future):
         # final shape we should get:
         # video_list shape: [number of video, number of frame, number of IDs]
         # label_list shape: [number of video, 1, number of id]
@@ -32,7 +39,7 @@ class BC:
             sub_frame = {}
             for k in frame.keys():
                 # only get top k frequencies ID to do GraphRQI
-                if k not in fake_label_list and k in top_k_ID:
+                if k not in fake_label_list and k in self.top_k_ID:
                     fake_label_list[k] = 0
                     sub_frame[k] = frame[k]
             sub_frames.append(sub_frame)
@@ -40,7 +47,7 @@ class BC:
         if len(future) > 0:
             future_sub_frames = [dict() for lll in range(self.traj_len_required)]
             for k, v in future.items():
-                if k in top_k_ID:
+                if k in self.top_k_ID:
                     for f_idx in range(self.traj_len_required):
                         future_sub_frames[f_idx][k] = v[f_idx]
 
@@ -50,20 +57,17 @@ class BC:
         tmp_traj, new_fake_label_list, self.mapping_list = id_normalize([sub_frames], [[fake_label_list]])
         return (tmp_traj, new_fake_label_list)
 
-    def run(self, id_counter, current_traj, future_traj):
+    def run(self, current_traj, future_traj):
 
         hint_str = "Behavior Classification without future Trajectory."
-        if len(id_counter) < self.BC_args.id_num or max(id_counter.values()) < self.BC_required_len:
-            self.reset_traj_flag = False
-            return
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
         hint_str = "predict BC using future trajs"
         st = time.time()
         # if futures is empty list that mean don't predict future trajectory
-        ID_counter_sorted = dict(sorted(id_counter.items(), key=lambda item: item[1], reverse=True))
-        top_k_ID = [k for idx, k in enumerate(ID_counter_sorted) if idx < self.BC_args.id_num]
-        trajs, labels = self.preprocess(top_k_ID, current_traj, future_traj)
+        ID_counter_sorted = dict(sorted(self.id_counter.items(), key=lambda item: item[1], reverse=True))
+        self.top_k_ID = [k for idx, k in enumerate(ID_counter_sorted) if idx < self.BC_args.id_num]
+        trajs, labels = self.preprocess(current_traj, future_traj)
         adj = computeA(trajs, labels, self.BC_args.neighber, self.BC_args.dataset, True)
         Laplacian_Matrices = extractLi(adj)
         U_Matrices = RQI(Laplacian_Matrices)
@@ -76,5 +80,6 @@ class BC:
         for k, v in self.mapping_list.items():
             self.result[v] = res[k]
         
-        print("BC time: ", time.time()-st)
-        self.reset_traj_flag = True
+        # print("BC time: ", time.time()-st)
+        self.counter += 1
+        self.exe_time += (time.time() - st)

@@ -90,12 +90,12 @@ def inference(objdet=None, frame=None):
         t1 = time.time()
         OTS.detect_overtaking(objdet, lane_mask, frame)
         t2 = time.time()
-        print("Overtaking time: ", t2-t1)
+        # print("Overtaking time: ", t2-t1)
 
     frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
     cv2.putText(frame, OTS.msg, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
-    if OTS.both_lane_flag:
-        print("OT time: ", time.time()-st)
+    # if OTS.both_lane_flag:
+    #     print("OT time: ", time.time()-st)
     return frame
     
 
