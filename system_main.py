@@ -1,6 +1,4 @@
 from os import system
-import torch.multiprocessing as mp
-# mp.set_start_method('spawn')
 import cv2
 from system_UI import MyDialog
 from PyQt5.QtGui import QImage, QPixmap
@@ -12,7 +10,7 @@ g_frame = None
 
 def run():
     sys_args = system_parser.get_parser()
-    System = system_class.DrivingBehaviorSystem()
+    sys = system_class.DrivingBehaviorSystem()
     cap = cv2.VideoCapture(sys_args.video_path if sys_args.demo == "video" else sys_args.camid)
     frame_id = 0
     while True:
@@ -25,25 +23,23 @@ def run():
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
             # bounding box and ID infomation
-            System.MOT_run(frame, frame_id, format=sys_args.format_str)
+            sys.MOT.run(frame, frame_id, format=sys_args.format_str)
             # if frame_id % 2 == 0:
-            System.update_traj()
-
+            sys.TP.update_traj(sys.MOT.result)
             if sys_args.future:
-                System.get_future_traj()
-            System.BC_run()
-            System.OT_run(frame)
+                sys.TP.run()
+            sys.BC.run(sys.TP.ID_counter, sys.TP.traj, sys.TP.future_trajs)
+            sys.OT.run(sys.MOT.objdet, frame)
             # frame = System.OT_run(frame) # for debug using.
 
-            stop_flag = False
             if sys_args.show:
-                stop_flag = System.show(frame)
+                stop_flag = sys.show(frame)
             if stop_flag:
                 break
             frame_id += 1
             # print(frame_id)
-            if System.traj_reset_flag:
-                System.traj_reset()
+            if sys.BC.reset_traj_flag:
+                sys.TP.traj_reset()
         else:
             print("video is end.")
             break
