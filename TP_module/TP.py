@@ -12,6 +12,7 @@ class TP:
         from TP_module import parser as TP_parser
         TP_args = TP_parser.get_parser()
         TP_args.actor = "seq2seq"
+        # TP_args.actor = 'LSTM'
         # TP_args.actor = 'aseq'
         print(TP_args.actor)
         model_path = './TP_module/weights/' + TP_args.actor

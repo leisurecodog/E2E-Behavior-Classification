@@ -15,20 +15,20 @@ class OT:
         import OT_module.functions as functions
 
         # Yolact setting
-        print("????????????????????/")
         self.yolact_model = load_yolact_edge()
         self.yolact_model.detect.use_fast_nms = True
         self.transform = FastBaseTransform
         self.get_mask = prep_display
+        self.moving_statistics = {"conf_hist": []}
+        self.extras = {"backbone": "full", "interrupt": False,\
+             "keep_statistics": False,"moving_statistics": self.moving_statistics}
         # PInet setting
         self.lane_predict = PInet_test
         self.lane_agent = Agent()
         self.lane_agent.cuda()
         self.lane_agent.evaluate_mode()
         self.lane_agent.load_weights(895, "tensor(0.5546)")
-        self.moving_statistics = {"conf_hist": []}
-        self.extras = {"backbone": "full", "interrupt": False,\
-             "keep_statistics": False,"moving_statistics": self.moving_statistics}
+        
         self.OTS = functions.overtaking_system()
         self.OT_args = set_opt()
         self.counter = 0

@@ -13,8 +13,10 @@ def run():
     global g_frame
     sys_args = system_parser.get_parser()
     sys = system_class.DrivingBehaviorSystem(sys_args)
+    # sys = system_class_parallel.DrivingBehaviorSystem(sys_args)
     cap = cv2.VideoCapture(sys_args.video_path if sys_args.demo == "video" else sys_args.camid)
     frame_id = 0
+
     while True:
       # ret_val: True -> Read image, False -> No image
       # frame: image frame.
@@ -27,7 +29,7 @@ def run():
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
             # bounding box and ID infomation
-            sys.MOT.run(frame, frame_id, format=sys_args.format_str)
+            sys.MOT.run(frame)
             # if frame_id % 2 == 0:
             sys.TP.update_traj(sys.MOT.result)
             if sys_args.future:
@@ -42,6 +44,10 @@ def run():
             if sys_args.show:
                 stop_flag = sys.show(frame, t_time_1)
             if stop_flag:
+                cap.release()
+                cv2.destroyAllWindows()
+                break
+            if frame_id == 200:
                 break
             frame_id += 1
             if sys.reset:
@@ -65,6 +71,6 @@ def window():
 if __name__ == '__main__':
     import system_parser
     import system_class
-    # import torch.multiprocessing as mp
-    # mp.set_start_method('spawn')
+    import system_class_parallel
     run()
+    # window()

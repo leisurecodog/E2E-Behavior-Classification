@@ -11,7 +11,7 @@ from BC_module.BC import BC
 from OT_module.OT import OT
 
 class DrivingBehaviorSystem:
-    def __init__(self):
+    def __init__(self, args):
         """
         self.traj: list = [frame_1, frame_2, ... , frame_i]
         frame_i: dict = {key: id, value: [x,y] coordinate}
@@ -26,14 +26,8 @@ class DrivingBehaviorSystem:
         self.TP = TP()
         self.BC = BC(self.TP.traj_len_required)
         self.OT = OT()
-    # ========================= MOT module code =========================
-    
-    # ========================= TP module code ==========================
-    
-    # ========================= BC module code ==========================
-    
-    # ========================= OT module code ==========================
-    
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.writer = cv2.VideoWriter('/media/rvl/D/Work/fengan/code/system/output.avi', fourcc, 20.0, (1080, 720))
     # ========================= Other small function code ==========================
     def show(self, frame, t_total=None):
         bbox = self.MOT.result
@@ -74,10 +68,11 @@ class DrivingBehaviorSystem:
                         1, (255,255,255), thickness=1)
             # wk: if future_traj is drawn, then waitkey set 0 for better visualization.
             wk = 0 if future_traj_flag else 1
-            cv2.imshow('t', frame)
-            wk = 1
-            if cv2.waitKey(wk) == 27: # whether is pressed ESC key.
-                print("ESC pressed.")
-                return True
+            self.writer.write(frame)
+            # cv2.imshow('t', frame)
+            # wk = 1
+            # if cv2.waitKey(wk) == 27: # whether is pressed ESC key.
+            #     print("ESC pressed.")
+            #     return True
         except Exception as e:
             print("Exception is happened: {}".format(e))

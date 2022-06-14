@@ -16,4 +16,5 @@ def get_parser():
     parser.add_argument('--format_str', default='bbox', type=str)
     parser.add_argument('--resize', default=True, type=bool)
     parser.add_argument('--size', default=(1080, 720), type=tuple)
+    parser.add_argument('--save', default=True, type=bool)
     return parser.parse_args()

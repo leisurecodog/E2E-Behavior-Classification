@@ -15,8 +15,9 @@ class MOT:
         self.object_predictor, self.imgsz, self.names = load_yolov5(rt=True)
         self.counter = 0
         self.exe_time = 0
+        self.frame_id = 0
 
-    def run(self, frame, frame_id, format):
+    def run(self, frame, format='bbox'):
         from MOT_module import yolo_detect
         st = time.time()
         img_info = {}
@@ -43,11 +44,12 @@ class MOT:
                     results[tid] = tlwh[:4]
                 else:
                     results.append(
-                        f"{frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f}\
+                        f"{self.frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f}\
                         ,{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
                     )
         else:
             print("MOT outputs is None.")
+        self.frame_id += 1
         self.result = results
         # print("MOT time: ", time.time()-st)
         self.counter += 1
