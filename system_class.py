@@ -69,10 +69,10 @@ class DrivingBehaviorSystem:
             # wk: if future_traj is drawn, then waitkey set 0 for better visualization.
             wk = 0 if future_traj_flag else 1
             self.writer.write(frame)
-            # cv2.imshow('t', frame)
-            # wk = 1
-            # if cv2.waitKey(wk) == 27: # whether is pressed ESC key.
-            #     print("ESC pressed.")
-            #     return True
+            cv2.imshow('t', frame)
+            wk = 1
+            if cv2.waitKey(wk) == 27: # whether is pressed ESC key.
+                print("ESC pressed.")
+                return True
         except Exception as e:
             print("Exception is happened: {}".format(e))

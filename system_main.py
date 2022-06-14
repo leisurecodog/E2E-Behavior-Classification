@@ -47,8 +47,6 @@ def run():
                 cap.release()
                 cv2.destroyAllWindows()
                 break
-            if frame_id == 200:
-                break
             frame_id += 1
             if sys.reset:
                 sys.TP.traj_reset()
