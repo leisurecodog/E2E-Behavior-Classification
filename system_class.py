@@ -31,7 +31,7 @@ class DrivingBehaviorSystem:
     # ========================= Other small function code ==========================
     def show(self, frame, t_total=None):
         bbox = self.MOT.result
-        MOT_show_flag = False
+        MOT_show_flag = True
         future_traj_flag = True if self.TP.future_trajs is not None else False
         BC_result_flag = True if self.BC.result is not None else False
 

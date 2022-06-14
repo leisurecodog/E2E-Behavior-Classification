@@ -16,7 +16,7 @@ def run():
     # sys = system_class_parallel.DrivingBehaviorSystem(sys_args)
     cap = cv2.VideoCapture(sys_args.video_path if sys_args.demo == "video" else sys_args.camid)
     frame_id = 0
-
+    interval = 5
     while True:
       # ret_val: True -> Read image, False -> No image
       # frame: image frame.
@@ -30,9 +30,10 @@ def run():
                 frame = cv2.resize(frame, (sys_args.size))
             # bounding box and ID infomation
             sys.MOT.run(frame)
-            # if frame_id % 2 == 0:
+            
             sys.TP.update_traj(sys.MOT.result)
-            if sys_args.future:
+            
+            if sys_args.future and frame_id % interval == 0:
                 sys.TP.run()
             if sys.BC.is_satisfacation(sys.TP.ID_counter):
                 sys.reset = True
