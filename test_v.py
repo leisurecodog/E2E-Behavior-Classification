@@ -7,8 +7,10 @@ def worker(func, name, *params):
         nums = 10000
     for i in range(nums):
         st = time.time()
-        func(*params)   
+        res = func(*params)   
         st2 = time.time()
+        if name =='pinet':
+            print(res)
         print(name, st2-st)
     # if name == 'pinet':
     #     a, b = params
@@ -48,7 +50,6 @@ if __name__ == '__main__':
     from MOT_module.tools.demo_track_yolov5 import load_yolov5
     object_predictor, imgsz, names = load_yolov5(rt=True)
     
-
     import numpy as np
     
     from MOT_module import yolo_detect
@@ -61,10 +62,10 @@ if __name__ == '__main__':
     
     # yolact_model = load_yolact_edge()
     # yolact_model.detect.use_fast_nms = True
-    # lane_agent = Agent()
-    # lane_agent.cuda()
-    # lane_agent.evaluate_mode()
-    # lane_agent.load_weights(895, "tensor(0.5546)")
+    lane_agent = Agent()
+    lane_agent.cuda()
+    lane_agent.evaluate_mode()
+    lane_agent.load_weights(895, "tensor(0.5546)")
 
     
     frame = cv2.imread('/home/rvl/Pictures/modified_graphRQI_Result.png')

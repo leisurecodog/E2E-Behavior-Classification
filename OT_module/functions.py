@@ -214,9 +214,9 @@ class overtaking_system:
         for i in range(split):
             coord_left_x, coord_left_y = self.left_lane[:, left_lane_idx[i]]
             coord_right_x, coord_right_y = self.right_lane[:, right_lane_idx[i]]
-            if frame is not None:
-                cv2.circle(frame, (int(coord_left_x),int(coord_left_y)), 2, (255,255,0), 2)
-                cv2.circle(frame, (int(coord_right_x),int(coord_right_y)), 2, (255,255,0), 2)
+            # if frame is not None:
+                # cv2.circle(frame, (int(coord_left_x),int(coord_left_y)), 2, (255,255,0), 2)
+                # cv2.circle(frame, (int(coord_right_x),int(coord_right_y)), 2, (255,255,0), 2)
             threshold = coord_right_x - coord_left_x
             threshold_list[i] = threshold
             bias = 5 # calculate sum of left and right not from center of line

@@ -6,11 +6,13 @@ from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QGridLayout, QLa
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 import time
-g_frame = None
+import numpy as np
+g_frame = np.zeros((1080, 720, 3))
 
 def run():
+    global g_frame
     sys_args = system_parser.get_parser()
-    sys = system_class.DrivingBehaviorSystem()
+    sys = system_class.DrivingBehaviorSystem(sys_args)
     cap = cv2.VideoCapture(sys_args.video_path if sys_args.demo == "video" else sys_args.camid)
     frame_id = 0
     while True:
@@ -20,7 +22,8 @@ def run():
         sys.reset = False
       # start working when have image.
         if ret_val:
-            
+            g_frame = frame.copy()
+            t_time_1 = time.time()            
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
             # bounding box and ID infomation
@@ -33,14 +36,14 @@ def run():
                 sys.reset = True
                 sys.BC.run(sys.TP.traj, sys.TP.future_trajs)
             sys.OT.run(sys.MOT.objdet, frame)
+            print(sys.OT.OTS.msg)
             # frame = System.OT_run(frame) # for debug using.
-
+            stop_flag = False
             if sys_args.show:
-                stop_flag = sys.show(frame)
+                stop_flag = sys.show(frame, t_time_1)
             if stop_flag:
                 break
             frame_id += 1
-            
             if sys.reset:
                 sys.TP.traj_reset()
         else:
@@ -56,10 +59,12 @@ def window():
     app = QApplication(sys.argv)
     dialog = MyDialog()
     dialog.show()
-    dialog.set_img(g_frame)
+    dialog.set_img()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
     import system_parser
     import system_class
+    # import torch.multiprocessing as mp
+    # mp.set_start_method('spawn')
     run()

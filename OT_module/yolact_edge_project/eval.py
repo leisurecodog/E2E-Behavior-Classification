@@ -1294,6 +1294,3 @@ def load_yolact_edge():
             net = net.cuda()
         return net
         # evaluate(net, dataset)
-
-# if __name__ == '__main__':
-#     load_yolact_edge()

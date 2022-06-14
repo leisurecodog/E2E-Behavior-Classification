@@ -2,6 +2,7 @@ import argparse
 
 def get_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--parallel', default=True, type=bool)
     # ==================== System argument ====================
     parser.add_argument('--video_path', default='/media/rvl/D/Work/fengan/Dataset/CEO/20201116/front/201116154627.MOV', type=str)
     # print(f_shape)

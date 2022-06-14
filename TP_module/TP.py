@@ -75,6 +75,7 @@ class TP:
                     # future_trajs[id] = []
                 # print(traj_id)
                 self.future_trajs[k] = self.predict_traj(traj_id)
+
         if len(self.future_trajs) == 0:
             self.future_trajs = None
 

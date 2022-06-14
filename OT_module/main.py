@@ -6,8 +6,6 @@ import torch
 import math
 import os, sys
 import time
-
-from argparse import ArgumentParser
 # import yolact edge module
 from OT_module.yolact_edge_project.utils.timer import start
 from OT_module.yolact_edge_project.eval import load_yolact_edge, prep_display
@@ -32,44 +30,27 @@ import torch.multiprocessing as mp
 manager = mp.Manager()
 return_dict = manager.dict()
 
-# def worker(model, name, *params):
-    # print(name, params)
-    # if name == "pinet":
-        # x, y = model(params)
-        # print(x, y)
-        # return_dict[name] = [x, y]
-        # print(return_dict)
-    # elif name == 'yolact':
-        # net_pred = model(params)
-        # print(net_pred)
-        # return_dict[name] = net_pred
-        # print(return_dict)
-
-def inference(objdet=None, frame=None):
-    global f_shape, f_type, imgsz
+def inference(objdet, frame):
     st = time.time()
-    draw_laneline_flag = True
-    transform = FastBaseTransform()
+    # draw_laneline_flag = True
     moving_statistics = {"conf_hist": []}
-    f_shape = frame.shape
-
-    f_type = frame.dtype
+    # frame.shape: [Height, Width, Channels]
+    center_x = frame.shape[1] / 2 # get image center
     # get lane line
 
     x_coord, y_coord = PInet_test(lane_agent, frame)
-
-    center_x = f_shape[1] / 2 # get image center
-    if x_coord is not None and y_coord is not None:
+    
+    if len(x_coord) > 0 and len(y_coord) > 0:
         OTS.set_lane([x_coord, y_coord], center_x)
     
     # draw lane after process
-    if OTS.both_lane_flag and draw_laneline_flag:
-        for i in range(len(OTS.left_lane[0])):
-            x, y = OTS.left_lane[:, i]
-            cv2.circle(frame, (int(x), int(y)), 2, (255,255,255), 2)
-        for i in range(len(OTS.right_lane[0])):
-            x, y = OTS.right_lane[:, i]
-            cv2.circle(frame, (int(x), int(y)), 2, (255,255,255), 2)
+    # if OTS.both_lane_flag and draw_laneline_flag:
+        # for i in range(len(OTS.left_lane[0])):
+            # x, y = OTS.left_lane[:, i]
+            # cv2.circle(frame, (int(x), int(y)), 2, (255,255,255), 2)
+        # for i in range(len(OTS.right_lane[0])):
+            # x, y = OTS.right_lane[:, i]
+            # cv2.circle(frame, (int(x), int(y)), 2, (255,255,255), 2)
     # for i in range(len(objdet)):
         # x1, y1 = objdet[i][:2]
         # x2, y2 = objdet[i][2:4]
@@ -86,23 +67,20 @@ def inference(objdet=None, frame=None):
     preds = net_outs["pred_outs"]
     # get lane mask
     lane_mask = prep_display(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
+    
     if OTS.both_lane_flag:
-        t1 = time.time()
+        # t1 = time.time()
         OTS.detect_overtaking(objdet, lane_mask, frame)
-        t2 = time.time()
+        # t2 = time.time()
         # print("Overtaking time: ", t2-t1)
+    else:
+        OTS.msg = "Overtaking is not activate."
 
-    frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
-    cv2.putText(frame, OTS.msg, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+    return OTS.msg
+    # frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
+    # cv2.putText(frame, OTS.msg, (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255))
+    
     # if OTS.both_lane_flag:
     #     print("OT time: ", time.time()-st)
-    return frame
+    # return frame
     
-
-def set_opt():
-    opt = ArgumentParser()
-    opt.add_argument('--yolact_edge', action='store_false')
-    opt.add_argument('--obj_det', action='store_false')
-    opt.add_argument('--save_video', action='store_false')
-    opt.add_argument('--video_path', type=str, default='201126152425.MOV')
-    return opt.parse_args()
