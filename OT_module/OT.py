@@ -33,6 +33,10 @@ class OT:
         self.OT_args = set_opt()
         self.counter = 0
         self.exe_time = 0
+        self.pinet_time = 0
+        self.pinet_counter = 0
+        self.yolact_time = 0
+        self.yolact_counter = 0
 
     def run(self, objdet, frame):
         st = time.time()
@@ -41,7 +45,11 @@ class OT:
         center_x = frame.shape[1] / 2 # get image center
 
         # Get lane line
+        t1 = time.time()
         x_coord, y_coord = self.lane_predict(self.lane_agent, frame)
+        self.pinet_time += (time.time()-t1)
+        self.pinet_counter += 1
+
         if len(x_coord) > 0 and len(y_coord) > 0:
             self.OTS.set_lane([x_coord, y_coord], center_x)
 
@@ -49,7 +57,10 @@ class OT:
         frame_tensor = torch.from_numpy(frame).cuda().float()
         batch = self.transform()(frame_tensor.unsqueeze(0))
         with torch.no_grad():
+            t1 = time.time()
             net_outs = self.yolact_model(batch, extras=self.extras) # yolact edge detect lane mask
+            self.yolact_time += (time.time()-t1)
+            self.yolact_counter += 1
         preds = net_outs["pred_outs"]
         # Get lane mask
         lane_mask = self.get_mask(preds, frame_tensor, None, None, undo_transform=False, class_color=True)

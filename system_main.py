@@ -58,6 +58,13 @@ def run():
     print("TP average time:", sys.TP.exe_time/sys.TP.counter)
     print("BC average time:", sys.BC.exe_time/sys.BC.counter)
     print("OT average time:", sys.OT.exe_time/sys.OT.counter)
+    print('')
+    print("YOLO average time:", sys.MOT.yolo_time/sys.MOT.yolo_counter)
+    print("Tracker average time:", sys.MOT.tracker_time/sys.MOT.tracker_counter)
+    print("main RQI average time:", sys.BC.main_time/sys.BC.main_counter)
+    print("PInet average time:", sys.OT.pinet_time/sys.OT.pinet_counter)
+    print("Yolact average time:", sys.OT.yolact_time/sys.OT.yolact_counter)
+    print("DDPG average time:", sys.TP.single_traj_time/sys.TP.traj_pred_counter)
 
 def window():
     import sys

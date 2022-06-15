@@ -16,20 +16,31 @@ class MOT:
         self.counter = 0
         self.exe_time = 0
         self.frame_id = 0
+        self.yolo_time = 0
+        self.tracker_time = 0
+        self.yolo_counter = 0
+        self.tracker_counter = 0
+
 
     def run(self, frame, format='bbox'):
         from MOT_module import yolo_detect
         st = time.time()
         img_info = {}
         results = {}
+        t1 = time.time()
         outputs = yolo_detect.detect(self.object_predictor, self.imgsz, self.names, frame)
+        self.yolo_time += (time.time()-t1)
+        self.yolo_counter += 1
         self.objdet = outputs.cpu().detach().numpy()
         img_info['height'], img_info['width'] = frame.shape[:2]
         img_info['raw_img'] = frame
 
         if outputs is not None:
+            t1 = time.time()
             online_targets = self.tracker.update(reversed(outputs), [img_info['height'], img_info['width']], [img_info['height'], 
             img_info['width']])
+            self.tracker_time += (time.time()-t1)
+            self.tracker_counter += 1
             online_tlwhs = []
             online_ids = []
             online_scores = []

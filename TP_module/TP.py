@@ -30,6 +30,8 @@ class TP:
         self.future_trajs = None
         self.counter = 0
         self.exe_time = 0
+        self.single_traj_time = 0
+        self.traj_pred_counter = 0
 
     def update_traj(self, data):
         frame = {}
@@ -58,7 +60,9 @@ class TP:
             next_state = np.concatenate((current_state[2:], np.asarray(next_traj, dtype=np.float32)), axis=0)
             current_state = next_state
         t2 = time.time()
-        # print("TP time:", t2-t1)
+        # print("TP time for single trajectory:", t2-t1)
+        self.single_traj_time += (t2-t1)
+        self.traj_pred_counter += 1
         return future_traj
 
     def run(self):

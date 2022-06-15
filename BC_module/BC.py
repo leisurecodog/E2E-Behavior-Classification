@@ -18,6 +18,8 @@ class BC:
         self.BC_required_len = 20
         self.counter = 0
         self.exe_time = 0
+        self.main_time = 0
+        self.main_counter = 0
         self.bbox_color = [(255, 255, 255), (0, 0, 255)]
 
     def is_satisfacation(self, id_counter):
@@ -30,7 +32,7 @@ class BC:
         # final shape we should get:
         # video_list shape: [number of video, number of frame, number of IDs]
         # label_list shape: [number of video, 1, number of id]
-        from BC_module.data_preprocess import id_normalize, mapping_list
+        from BC_module.data_preprocess import id_normalize
         # calculate total id and make dictionary.
         fake_label_list = {}
         # Constraint ID number
@@ -68,10 +70,13 @@ class BC:
         ID_counter_sorted = dict(sorted(self.id_counter.items(), key=lambda item: item[1], reverse=True))
         self.top_k_ID = [k for idx, k in enumerate(ID_counter_sorted) if idx < self.BC_args.id_num]
         trajs, labels = self.preprocess(current_traj, future_traj)
+        t1 = time.time()
         adj = computeA(trajs, labels, self.BC_args.neighber, self.BC_args.dataset, True)
         Laplacian_Matrices = extractLi(adj)
         U_Matrices = RQI(Laplacian_Matrices)
         new_Matrices = np.reshape(U_Matrices, (-1, self.BC_args.id_num)) 
+        self.main_time += (time.time()-t1)
+        self.main_counter += 1
         res = self.classifier.predict(new_Matrices)
         # In One Class SVM classification result,
         # -1 mean outlier, 1 mean inlier => -1 mean aggressive, 1 mean conservative
