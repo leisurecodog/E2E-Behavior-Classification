@@ -7,12 +7,14 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 import time
 import numpy as np
-g_frame = np.zeros((1080, 720, 3))
+
+g_frame = np.zeros((720, 640, 3))
 
 def run():
     from MOT_module.MOT_processor import run as MOT_run
     from TP_module.TP_processor import run as TP_run
-    global g_frame
+    from processor1 import run as P1_run
+    global g_frame, g_frame_list
     sys_args = system_parser.get_parser()
     cap = cv2.VideoCapture(sys_args.video_path if sys_args.demo == "video" else sys_args.camid)
     frame_id = 0
@@ -20,13 +22,19 @@ def run():
     dict_frame = manager.dict()
     dict_objdet = manager.dict()
     dict_MOT = manager.dict()
-    list_traj_current = manager.list()
+    dict_traj_current = manager.dict()
     dict_traj_future = manager.dict()
+    dict_traj_result = manager.dict()
     p_list = [[]] * 20
+    # p_list[0] = Process(target=P1_run, args=(dict_frame, dict_objdet, dict_traj_result,))
+    # p_list[0].start()
     p_list[0] = Process(target=MOT_run, args=(dict_frame, dict_objdet, dict_MOT,))
     p_list[0].start()
-    p_list[1] = Process(target=TP_run, args=(dict_MOT, list_traj_current, dict_traj_future,))
+    p_list[1] = Process(target=TP_run, args=(dict_MOT, dict_traj_current, dict_traj_future,))
     p_list[1].start()
+    p_list[2] = Process(target=Display_run, args=(dict_frame, dict_MOT, \
+        dict_traj_current, dict_traj_future,))
+    p_list[2].start()
     while True:
       # ret_val: True -> Read image, False -> No image
       # frame: image frame.
@@ -35,10 +43,12 @@ def run():
         
       # start working when have image.
         if ret_val:
-            g_frame = frame.copy()
+            g_frame = frame
+            # g_frame_list.append(frame)
             t_time_1 = time.time()            
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
+
             # bounding box and ID infomation
             dict_frame[frame_id] = frame
             # if sys.BC.is_satisfacation(sys.TP.ID_counter):
@@ -65,13 +75,38 @@ def run():
     # print("BC average time:", sys.BC.exe_time/sys.BC.counter)
     # print("OT average time:", sys.OT.exe_time/sys.OT.counter)
 
-def window():
+def window(g_frame):
+    # global g_frame
+    
     import sys
     app = QApplication(sys.argv)
     dialog = MyDialog()
     dialog.show()
-    dialog.set_img()
+    dialog.set_img(g_frame)
     sys.exit(app.exec_())
+
+def Display_run(dict_frame, dict_MOT, list_traj_current, dict_traj_future):
+    frame_id = 0
+    while True:
+        if frame_id in dict_frame and frame_id in dict_MOT:
+            bbox = dict_MOT[frame_id]
+            fm = dict_frame[frame_id]
+            for id in bbox.keys():
+                draw_color_idx = 0
+                x1, y1, offset_x, offset_y = bbox[id]
+                x2, y2 = x1 + offset_x, y1 + offset_y
+                # if BC_result_flag and id in self.BC.result.keys():
+                #     bcr = self.BC.result[id]
+                #     if bcr == -1:
+                #         draw_color_idx = 1
+                # cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), self.BC.bbox_color[draw_color_idx], 2)
+                cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,255), 2)
+                cv2.putText(fm, str(id), (int(x1), int(y1)), cv2.FONT_HERSHEY_PLAIN,\
+                        1, (255, 255, 0), thickness=1)
+            cv2.imshow('t', fm)
+            cv2.waitKey(1)
+            frame_id += 1
+
 
 def show(self, frame, t_total=None):
         bbox = self.MOT.result
@@ -126,6 +161,8 @@ if __name__ == '__main__':
     import system_class
     from torch.multiprocessing import Process, Manager
     import torch.multiprocessing as mp
+    import threading
     mp.set_start_method('spawn')
+    # t1 = threading.Thread(target=window, args=(g_frame,))
+    # t1.start()
     run()
-    # window()

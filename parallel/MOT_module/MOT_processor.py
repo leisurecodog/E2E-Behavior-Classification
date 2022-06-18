@@ -7,6 +7,6 @@ def run(frame_dict, objdet_dict, MOT_dict):
     module = MOT()
     # ==================================================
     while True:
-        if frame_dict[module.frame_id] is not None:
+        if module.frame_id in frame_dict:
             data = frame_dict[module.frame_id]
             module.run(data, objdet_dict, MOT_dict)

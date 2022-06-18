@@ -32,7 +32,7 @@ class TP:
         self.single_traj_time = 0
         self.traj_pred_counter = 0
 
-    def update_traj(self, data, traj_share):
+    def update_traj(self, data, frame_id, traj_share):
         # print(id(traj_share))
         frame = {}
         for k in data.keys():
@@ -43,37 +43,37 @@ class TP:
             if k not in self.ID_counter:
                 self.ID_counter[k] = 0
             self.ID_counter[k] += 1
-        traj_share.append(frame)
+        traj_share[frame_id] = frame
 
-    def predict_traj(self, traj):
-        # read last k traj to predict
-        init_state = traj[-self.traj_len_required:]
-        future_traj = [[]] * self.traj_len_required
-        # current_state: [x0, y0, x1, y1, .... xk, yk]
-        current_state = np.array(init_state).reshape(-1)
-        # get future trajectory that length is the same with trajectory history.
-        t1 = time.time()
-        for idx in range(self.traj_len_required):
-            action = self.policy(current_state)
-            next_traj = [current_state[-2] + action[0], current_state[-1] + action[1]]
-            future_traj[idx] = next_traj
-            next_state = np.concatenate((current_state[2:], np.asarray(next_traj, dtype=np.float32)), axis=0)
-            current_state = next_state
-        t2 = time.time()
-        # print("TP time for single trajectory:", t2-t1)
-        self.single_traj_time += (t2-t1)
-        self.traj_pred_counter += 1
-        return future_traj
+    # def predict_traj(self, traj):
+    #     # read last k traj to predict
+    #     init_state = traj[-self.traj_len_required:]
+    #     future_traj = [[]] * self.traj_len_required
+    #     # current_state: [x0, y0, x1, y1, .... xk, yk]
+    #     current_state = np.array(init_state).reshape(-1)
+    #     # get future trajectory that length is the same with trajectory history.
+    #     t1 = time.time()
+    #     for idx in range(self.traj_len_required):
+    #         action = self.policy(current_state)
+    #         next_traj = [current_state[-2] + action[0], current_state[-1] + action[1]]
+    #         future_traj[idx] = next_traj
+    #         next_state = np.concatenate((current_state[2:], np.asarray(next_traj, dtype=np.float32)), axis=0)
+    #         current_state = next_state
+    #     t2 = time.time()
+    #     # print("TP time for single trajectory:", t2-t1)
+    #     self.single_traj_time += (t2-t1)
+    #     self.traj_pred_counter += 1
+    #     return future_traj
 
-    def run(self, current_traj_list, future_traj_dict):
+    def run(self, fm_id, current_traj_dict, future_traj_dict):
         total_trajs_id = []
         ids = []
         future = []
-        # print(id(future_traj_dict))
+        # print(current_traj_dict[fm_id])
         for k, v in self.ID_counter.items():
             if v >= self.traj_len_required:
                 # collect trajs from buffer(self.traj)
-                traj_id = [frame[k] for frame in current_traj_list if k in frame]
+                traj_id = [frame[k] for frame in current_traj_dict.values() if k in frame]
                 total_trajs_id.append(traj_id[-self.traj_len_required:])
                 ids.append(k)
         if len(total_trajs_id) > 0:
@@ -89,10 +89,12 @@ class TP:
                 next_traj = np.reshape(next_traj, (next_traj.shape[0], 1, -1))
                 next_state = np.concatenate((state[:,1:,:], next_traj), axis=1)
                 state = next_state
-            print("inference time for batch {}:".format(state.shape[0]), time.time()-t1)
+            future = np.array(future)
+            future = np.transpose(future, (1,0,2))
+            # print("inference time for batch {}:".format(state.shape[0]), time.time()-t1)
             # update dict without assign a new object
-            future_traj_dict.update(dict(zip(ids, future)))
-        # print(id(future_traj_dict))
+            future_traj_dict[fm_id] = (dict(zip(ids, future)))
+            
     def traj_reset(self):
         self.traj = []
         self.ID_counter = {}

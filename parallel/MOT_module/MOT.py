@@ -20,7 +20,7 @@ class MOT:
         self.tracker_time = 0
         self.yolo_counter = 0
         self.tracker_counter = 0
-        self.format='bbox'
+        self.format = 'bbox'
 
 
     def run(self, frame, dict_objdet, dict_MOT):
@@ -55,7 +55,7 @@ class MOT:
                 online_ids.append(tid)
                 online_scores.append(t.score)
 
-                if format == 'bbox':
+                if self.format == 'bbox':
                     results[tid] = tlwh[:4]
                 else:
                     results.append(

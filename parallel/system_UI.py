@@ -46,12 +46,12 @@ class MyDialog(QDialog):
         self.btnSave.clicked.connect(self.saveSlot)
 
     def openSlot(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open Image', 'Image', '*.png *.jpg *.bmp')
-        if filename is '':
-            return
-        self.img = cv2.imread(filename, -1)
-        if self.img.size == 1:
-            return
+        # filename, _ = QFileDialog.getOpenFileName(self, 'Open Image', 'Image', '*.png *.jpg *.bmp')
+        # if filename is '':
+        #     return
+        # self.img = cv2.imread(filename, -1)
+        # if self.img.size == 1:
+        #     return
         self.showImage()
         self.btnSave.setEnabled(True)
 
