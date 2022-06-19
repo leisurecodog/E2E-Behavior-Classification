@@ -1,3 +1,4 @@
+import multiprocessing
 from os import system
 import cv2
 from system_UI import MyDialog
@@ -7,13 +8,14 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 import time
 import numpy as np
+from system_util import ID_check
 
 g_frame = np.zeros((720, 640, 3))
 
 def run():
     from MOT_module.MOT_processor import run as MOT_run
     from TP_module.TP_processor import run as TP_run
-    from processor1 import run as P1_run
+    from Processor_1 import run as P1_run
     global g_frame, g_frame_list
     sys_args = system_parser.get_parser()
     cap = cv2.VideoCapture(sys_args.video_path if sys_args.demo == "video" else sys_args.camid)
@@ -24,40 +26,45 @@ def run():
     dict_MOT = manager.dict()
     dict_traj_current = manager.dict()
     dict_traj_future = manager.dict()
-    dict_traj_result = manager.dict()
+    dict_BC = manager.dict()
+    dict_Flag = manager.dict()
+    lock = multiprocessing.Lock()
     p_list = [[]] * 20
-    # p_list[0] = Process(target=P1_run, args=(dict_frame, dict_objdet, dict_traj_result,))
-    # p_list[0].start()
-    p_list[0] = Process(target=MOT_run, args=(dict_frame, dict_objdet, dict_MOT,))
+    
+    p_list[0] = Process(target=P1_run, args=(dict_frame, dict_objdet, dict_MOT, dict_traj_future, dict_BC, lock,))
     p_list[0].start()
-    p_list[1] = Process(target=TP_run, args=(dict_MOT, dict_traj_current, dict_traj_future,))
-    p_list[1].start()
+    # print("ID", id(dict_MOT))
+    ID_check(dict_MOT, "dict_MOT")
+    # p_list[0] = Process(target=MOT_run, args=(dict_frame, dict_objdet, dict_MOT,))
+    # p_list[0].start()
+    # p_list[1] = Process(target=TP_run, args=(dict_MOT, dict_traj_current, dict_traj_future,))
+    # p_list[1].start()
     p_list[2] = Process(target=Display_run, args=(dict_frame, dict_MOT, \
-        dict_traj_current, dict_traj_future,))
+        dict_traj_current, dict_traj_future,lock,))
     p_list[2].start()
     while True:
       # ret_val: True -> Read image, False -> No image
       # frame: image frame.
         ret_val, frame = cap.read()
-        # sys.reset = False
-        
       # start working when have image.
         if ret_val:
             g_frame = frame
-            # g_frame_list.append(frame)
             t_time_1 = time.time()            
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
 
             # bounding box and ID infomation
             dict_frame[frame_id] = frame
+            # print("LEN dict_MOT outside: ", len(dict_MOT))
             # if sys.BC.is_satisfacation(sys.TP.ID_counter):
             #     sys.reset = True
             #     sys.BC.run(sys.TP.traj, sys.TP.future_trajs)
+
             # sys.OT.run(sys.MOT.objdet, frame)
             # print(sys.OT.OTS.msg)
             # # frame = System.OT_run(frame) # for debug using.
             # stop_flag = False
+
             # if sys_args.show:
             #     stop_flag = sys.show(frame, t_time_1)
             # if stop_flag:
@@ -69,7 +76,11 @@ def run():
             #     sys.TP.traj_reset()
         else:
             print("video is end.")
-            break
+            # break # this si wrong, if video is end, just mean that read is end,
+            # but system still running. so call join for each process instead of break.
+            p_list[0].join()
+            p_list[2].join()
+            
     # print("MOT average time:", sys.MOT.exe_time/sys.MOT.counter)
     # print("TP average time:", sys.TP.exe_time/sys.TP.counter)
     # print("BC average time:", sys.BC.exe_time/sys.BC.counter)
@@ -85,11 +96,13 @@ def window(g_frame):
     dialog.set_img(g_frame)
     sys.exit(app.exec_())
 
-def Display_run(dict_frame, dict_MOT, list_traj_current, dict_traj_future):
+def Display_run(dict_frame, dict_MOT, list_traj_current, dict_traj_future, lock):
     frame_id = 0
     while True:
+        # lock.acquire()
         if frame_id in dict_frame and frame_id in dict_MOT:
             bbox = dict_MOT[frame_id]
+            # lock.release()
             fm = dict_frame[frame_id]
             for id in bbox.keys():
                 draw_color_idx = 0
@@ -104,8 +117,11 @@ def Display_run(dict_frame, dict_MOT, list_traj_current, dict_traj_future):
                 cv2.putText(fm, str(id), (int(x1), int(y1)), cv2.FONT_HERSHEY_PLAIN,\
                         1, (255, 255, 0), thickness=1)
             cv2.imshow('t', fm)
-            cv2.waitKey(1)
+            if cv2.waitKey(1) == 27:
+                break
             frame_id += 1
+        # else:
+        #     lock.release()
 
 
 def show(self, frame, t_total=None):

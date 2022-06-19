@@ -1,4 +1,5 @@
 from TP_module.util import prGreen
+from system_util import ID_check
 import time
 
 class MOT:
@@ -23,7 +24,7 @@ class MOT:
         self.format = 'bbox'
 
 
-    def run(self, frame, dict_objdet, dict_MOT):
+    def run(self, frame, dict_objdet, dict_MOT, lock):
         from MOT_module import yolo_detect
         st = time.time()
         img_info = {}
@@ -32,8 +33,10 @@ class MOT:
         outputs = yolo_detect.detect(self.object_predictor, self.imgsz, self.names, frame)
         self.yolo_time += (time.time()-t1)
         self.yolo_counter += 1
-
-        dict_objdet.update({self.frame_id : outputs.cpu().detach().numpy()})
+        # lock.acquire()
+        res = outputs.cpu().detach().numpy()
+        dict_objdet[self.frame_id] = res
+        # lock.release()
 
         # self.objdet = outputs.cpu().detach().numpy()
         img_info['height'], img_info['width'] = frame.shape[:2]
@@ -64,7 +67,8 @@ class MOT:
                     )
         else:
             print("MOT outputs is None.")
-        dict_MOT.update({self.frame_id : results})
+
+        dict_MOT[self.frame_id] = results
         self.frame_id += 1
         
         # self.result = results
