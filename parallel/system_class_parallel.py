@@ -5,82 +5,90 @@ import cv2
 from TP_module.util import prGreen
 import torch
 import time
-from MOT_module.MOT import MOT
-from TP_module.TP import TP
-from BC_module.BC import BC
-from OT_module.OT import OT
+import torch.multiprocessing as torch_mp
+import system_parser
+from system_util import ID_check
 
-def parallel_worker(func, Q):
-    print(Q.empty())
+class system_parallel():
 
-class DrivingBehaviorSystem:
-    def __init__(self, args):
-        """
-        self.traj: list = [frame_1, frame_2, ... , frame_i]
-        frame_i: dict = {key: id, value: [x,y] coordinate}
-        
-        MOT: Multiple Object Tracking
-        TP: Trajectory Prediction
-        BC: Behaivior Classification
-        OT: OverTaking Assistant
-        """
-        self.reset = False
-        self.MOT = MOT()
-        self.TP = TP()
-        self.BC = BC(self.TP.traj_len_required)
-        self.OT = OT()
-        if args.parallel:
-            import torch.multiprocessing as mp
-            from torch.multiprocessing import Process, Queue
-            mp.set_start_method('spawn')
-            QQ = Queue()
-            p1 = Process(target=parallel_worker, args=(self.MOT.run, QQ, ))
-            p1.start()
-            p1.join()
-    # ========================= Other small function code ==========================
-    def show(self, frame, t_total=None):
-        bbox = self.MOT.result
-        MOT_show_flag = False
-        future_traj_flag = True if self.TP.future_trajs is not None else False
-        BC_result_flag = True if self.BC.result is not None else False
+    def __init__(self):
+        # from MOT_module.MOT import MOT
+        # from TP_module.TP import TP
+        # from BC_module.BC import BC
+        # from OT_module.OT import OT
 
-        # Draw bounding box & agent ID and Behavior Classification Result
-        # draw_color_idx: 0 mean normal, 1 mean aggressive
-        if MOT_show_flag:
-            for id in bbox.keys():
-                draw_color_idx = 0
-                x1, y1, offset_x, offset_y = bbox[id]
-                x2, y2 = x1 + offset_x, y1 + offset_y
-                if BC_result_flag and id in self.BC.result.keys():
-                    bcr = self.BC.result[id]
-                    if bcr == -1:
-                        draw_color_idx = 1
-                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), self.BC.bbox_color[draw_color_idx], 2)
-                cv2.putText(frame, str(id), (int(x1), int(y1)), cv2.FONT_HERSHEY_PLAIN,\
-                        1, (255, 255, 0), thickness=1)
+        self.sys_args = system_parser.get_parser()
+        self.cap = cv2.VideoCapture(self.sys_args.video_path if self.sys_args.demo == "video" else self.sys_args.camid)
+        self.frame_id = 0
+        manager = torch_mp.Manager()
+        self.dict_frame = manager.dict()
+        self.dict_objdet = manager.dict()
+        self.dict_MOT = manager.dict()
+        self.dict_traj_current = manager.dict()
+        self.dict_traj_future = manager.dict()
+        self.dict_BC = manager.dict()
+        self.dict_Flag = manager.dict()
+        self.lock = torch_mp.Lock()
+        self.p_list = [[]] * 20
 
-        # Draw trajectory using point
-        traj_show_flag = True
-        try:
-            # Draw past traj
-            if traj_show_flag:
-                for f in self.TP.traj:
-                    for k, v in f.items():
-                        cv2.circle(frame, (int(v[0]), int(v[1])), 3, (0,0,255), -1)
-            # Draw future traj
-            if self.TP.future_trajs is not None and traj_show_flag:
-                for k, v in self.TP.future_trajs.items():
-                    for x, y in v:
-                        cv2.circle(frame, (int(x), int(y)), 3, (255,0,0), -1)
-            if t_total is not None:
-                cv2.putText(frame, "FPS: "+str(1.0/(time.time()-t_total)), (0, 20),cv2.FONT_HERSHEY_PLAIN,\
-                        1, (255,255,255), thickness=1)
-            # wk: if future_traj is drawn, then waitkey set 0 for better visualization.
-            wk = 0 if future_traj_flag else 1
-            cv2.imshow('t', frame)
-            wk = 1
-            if cv2.waitKey(wk) == 27: # whether is pressed ESC key.
-                print("ESC pressed.")
-                return True
-        except Exception as e:
-            print("Exception is happened: {}".format(e))
+    def run(self):
+        from Processor_1 import run as P1_run
+        self.p_list[0] = torch_mp.Process(target=P1_run, args=(self.dict_frame,\
+             self.dict_objdet, self.dict_MOT, self.dict_traj_future, self.dict_BC, self.lock,))
+        self.p_list[0].start()
+        ID_check(self.dict_MOT, "dict_MOT")
+        self.p_list[2] = torch_mp.Process(target=self.Display_run, args=(self.dict_frame, self.dict_MOT, \
+            self.dict_traj_current, self.dict_traj_future, self.lock,))
+        self.p_list[2].start()
+        while True:
+        # ret_val: True -> Read image, False -> No image
+        # frame: image frame.
+            ret_val, frame = self.cap.read()
+        # start working when have image.
+            if ret_val:
+                g_frame = frame
+                t_time_1 = time.time()            
+                if self.sys_args.resize:
+                    frame = cv2.resize(frame, (self.sys_args.size))
+
+                # bounding box and ID infomation
+                self.dict_frame[frame_id] = frame
+
+                frame_id += 1
+                # if sys.reset:
+                #     sys.TP.traj_reset()
+            else:
+                print("video is end.")
+                '''
+                # break # this is wrong, if video is end, just mean that read is end,
+                # but system still running. so call join for each process instead of 
+                '''
+                self.p_list[0].join()
+                self.p_list[2].join()
+
+    def Display_run(self, dict_frame, dict_MOT, list_traj_current, dict_traj_future, lock):
+        frame_id = 0
+        while True:
+            # lock.acquire()
+            if frame_id in dict_frame and frame_id in dict_MOT:
+                bbox = dict_MOT[frame_id]
+                # lock.release()
+                fm = dict_frame[frame_id]
+                for id in bbox.keys():
+                    draw_color_idx = 0
+                    x1, y1, offset_x, offset_y = bbox[id]
+                    x2, y2 = x1 + offset_x, y1 + offset_y
+                    # if BC_result_flag and id in self.BC.result.keys():
+                    #     bcr = self.BC.result[id]
+                    #     if bcr == -1:
+                    #         draw_color_idx = 1
+                    # cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), self.BC.bbox_color[draw_color_idx], 2)
+                    cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,255), 2)
+                    cv2.putText(fm, str(id), (int(x1), int(y1)), cv2.FONT_HERSHEY_PLAIN,\
+                            1, (255, 255, 0), thickness=1)
+                cv2.imshow('t', fm)
+                if cv2.waitKey(1) == 27:
+                    break
+                frame_id += 1
+            # else:
+            #     lock.release()

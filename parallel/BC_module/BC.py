@@ -15,7 +15,7 @@ class BC:
         self.traj_len_required = traj_len_required
         self.mapping_list = None
         self.result = None
-        self.BC_required_len = 20
+        self.BC_required_len = 30
         self.counter = 0
         self.exe_time = 0
         self.bbox_color = [(255, 255, 255), (0, 0, 255)]

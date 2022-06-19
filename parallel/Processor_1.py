@@ -23,17 +23,16 @@ def run(*params):
             # lock.release()
             data = frame_dict[module_MOT.frame_id]
             module_MOT.run(data, objdet_dict, MOT_dict, lock)
-            print("MOT done")
-            # print("LEN MOT: ", len(MOT_dict))
+            # print("MOT done")
             data = MOT_dict[frame_id]
 
             # ==============================================
 
             module_TP.update_traj(data, frame_id, current_traj_dict)
-            print("TP update Trajectory from MOT.")
+            # print("TP update Trajectory from MOT.")
             if module_TP.is_some_id_predictable():
                 module_TP.run(frame_id, current_traj_dict, Future_traj_dict)
-                print("TP done")
+                # print("TP done")
             
             # ==============================================
             # print(module_TP.ID_counter)
@@ -42,12 +41,12 @@ def run(*params):
                 # print("???????????????", list(Future_traj_dict.keys())[-1])
                 module_BC.run(current_traj_dict.values(), Future_traj_dict[frame_id])
                 BC_dict[frame_id] = module_BC.result
-                print("BC done")
+                # print("BC done")
             if reset_flag:
                 module_TP.traj_reset()
                 reset_flag = False
             frame_id += 1
-            print(frame_id)
+            # print(frame_id)
         # else:
             # lock.release()
     # ===================================================================
