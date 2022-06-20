@@ -18,7 +18,7 @@ class BC:
         self.BC_required_len = 30
         self.counter = 0
         self.exe_time = 0
-        self.bbox_color = [(255, 255, 255), (0, 0, 255)]
+        # self.bbox_color = [(255, 255, 255), (0, 0, 255)]
 
     def is_satisfacation(self, id_counter):
         if len(id_counter) < self.BC_args.id_num or max(id_counter.values()) < self.BC_required_len:

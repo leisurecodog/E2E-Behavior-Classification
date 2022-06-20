@@ -26,24 +26,23 @@ class TP:
         self.policy = lambda x: self.agent.select_action(x, decay_epsilon=False)
         # self.traj = []
         self.ID_counter = {}
-        self.future_trajs = None
         self.counter = 0
         self.exe_time = 0
         self.single_traj_time = 0
         self.traj_pred_counter = 0
 
-    def update_traj(self, data, frame_id, traj_share):
+    def update_traj(self, data):
         # print(id(traj_share))
-        frame = {}
+        self.current_frame = {}
         for k in data.keys():
             # record ID appear times.
             center_x = data[k][0] + data[k][2] // 2
             center_y = data[k][1] + data[k][3] // 2
-            frame[k] = [center_x, center_y]
+            self.current_frame[k] = [center_x, center_y]
             if k not in self.ID_counter:
                 self.ID_counter[k] = 0
             self.ID_counter[k] += 1
-        traj_share[frame_id] = frame
+        # current_traj_dict[frame_id] = frame
 
     def predict_traj(self, total_trajs_id):
         future = []
@@ -63,26 +62,37 @@ class TP:
         # future = np.transpose(future, (1,0,2))
         # return future
         return np.transpose(np.array(future), (1,0,2))
+        
     def is_some_id_predictable(self):
         return True in [val > self.traj_len_required for val in self.ID_counter.values()]
 
-    def run(self, fm_id, current_traj_dict, future_traj_dict):
+    def run(self, current_traj_id_dict):
+        limit = 40
         total_trajs_id = []
-        ids = []
+        self.ids = []
+        # t1 = time.time()
+        # values = current_traj_dict.values()
+        # if len(current_traj_dict) >= limit:
+        #     values = [current_traj_dict[k] for k in list(current_traj_dict.keys())[-limit:]]
+        # else:
+        #     values = current_traj_dict.values()
+        
+        t1 = time.time()
         for k, v in self.ID_counter.items():
             if v >= self.traj_len_required:
                 # collect trajs from buffer(self.traj)
-                traj_id = [frame[k] for frame in current_traj_dict.values() if k in frame]
+                traj_id = current_traj_id_dict[k]
                 total_trajs_id.append(traj_id[-self.traj_len_required:])
-                ids.append(k)
+                self.ids.append(k)
         # if len(total_trajs_id) > 0:
-        future = self.predict_traj(total_trajs_id)
-        # print("inference time for batch {}:".format(state.shape[0]), time.time()-t1)
-        
+        tk = time.time()
+        self.future = self.predict_traj(total_trajs_id)
+        tn = time.time()
+        print("interval 1 time: ", tk-t1)
+        print("interval 2 time: ", tn-tk)
+        # print("interval 3 time: ", tn-tk)
         # Update share dict
-        future_traj_dict[fm_id] = (dict(zip(ids, future)))
             
     def traj_reset(self):
         # self.traj = []
         self.ID_counter = {}
-        self.future_trajs = None
