@@ -31,21 +31,27 @@ def run():
     dict_frame = manager.dict() # save frame
     dict_objdet = manager.dict() # save objdet result
     dict_MOT = manager.dict() # save MOT result
-    dict_traj_frame_current = manager.dict() # save traj by format frame
-    dict_traj_id_current = manager.dict() # save traj by format {id : traj}
+    dict_traj_frame_current = manager.dict() # save traj by format frame -> internal for P1
+    dict_traj_id_dict = manager.dict() # save traj by format {id : traj}
     dict_traj_future = manager.dict()
     dict_BC = manager.dict()
-    dict_Flag = manager.dict()
+    dict_OT = manager.dict()
+    reset_flag = manager.Value(bool, False)
     lock = torch_mp.Lock()
     # share data config =========================================
 
-    p_list = [[]] * 20
-    p_list[0] = torch_mp.Process(target=P1_run, args=(dict_frame, dict_objdet, dict_MOT, dict_traj_frame_current, dict_traj_id_current, dict_traj_future, dict_BC, lock,))
-    p_list[0].start()
+    p_list = [[]] * 3
+    p_list[0] = torch_mp.Process(target=P1_run,
+    args=(dict_frame, dict_objdet, 
+        dict_MOT, dict_traj_id_dict, 
+        dict_traj_future, dict_BC, 
+        lock, reset_flag,))
     p_list[1] = torch_mp.Process(target=Input_reader, args=(sys_args, dict_frame,))
-    p_list[1].start()
     p_list[2] = torch_mp.Process(target=Output_reader, args=(dict_frame, dict_MOT, \
-        dict_traj_frame_current, dict_traj_future,lock,))
+        dict_traj_id_dict, dict_traj_future, dict_BC, lock, reset_flag))
+    
+    p_list[0].start()
+    p_list[1].start()        
     p_list[2].start()
     # ID_check(dict_MOT, "dict_MOT")
     while True:
@@ -93,19 +99,19 @@ def Input_reader(sys_args, dict_frame):
             dict_frame[frame_id] = frame
             frame_id += 1
     
-def Output_reader(dict_frame, dict_MOT, dict_traj_current, dict_traj_future, lock):    
+def Output_reader(dict_frame, dict_MOT, dict_traj_current, dict_traj_future, dict_BC, lock, reset_flag):    
     frame_id = 0
     last_frame_time = 0
     while True:
         FPS = 0
         # output: show video if all data is in share dictionary.
-        if frame_id in dict_MOT and frame_id in dict_traj_current and frame_id in dict_traj_future:
-        # if frame_id in dict_MOT:
+        # if frame_id in dict_MOT and frame_id in dict_traj_current and frame_id in dict_traj_future:
+        if frame_id in dict_MOT and frame_id in dict_BC:
             entry_time = time.time()
             if frame_id != 0:
                 waiting_time = entry_time - last_frame_time
                 FPS = 1 / waiting_time
-                # print("Waiting time: {}, FPS: {}".format(waiting_time, 1/waiting_time))
+                print("FPS: {}".format(FPS))
             bbox = dict_MOT[frame_id]
             # lock.release()
             fm = dict_frame[frame_id]
@@ -121,6 +127,10 @@ def Output_reader(dict_frame, dict_MOT, dict_traj_current, dict_traj_future, loc
                 cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,255), 2)
                 cv2.putText(fm, str(id), (int(x1), int(y1)), cv2.FONT_HERSHEY_PLAIN,\
                         1, (255, 255, 0), thickness=1)
+            for k, traj in dict_traj_current.items():
+                for v in traj:
+                    cv2.circle(fm, (int(v[0]), int(v[1])), 3, (0,0,255), -1)
+            
             cv2.putText(fm, "FPS: {}".format(FPS), (0, 30), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), thickness=1)
 
             cv2.imshow('t', fm)

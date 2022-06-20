@@ -21,20 +21,21 @@ class MOT:
         self.tracker_time = 0
         self.yolo_counter = 0
         self.tracker_counter = 0
-        self.format = 'bbox'
+        # self.format = 'bbox'
 
 
     def run(self, frame, dict_objdet, dict_MOT, lock):
         from MOT_module import yolo_detect
         st = time.time()
         img_info = {}
-        results = {}
+        self.current_MOT = {}
         t1 = time.time()
         outputs = yolo_detect.detect(self.object_predictor, self.imgsz, self.names, frame)
         self.yolo_time += (time.time()-t1)
         self.yolo_counter += 1
-        # lock.acquire()
+        
         res = outputs.cpu().detach().numpy()
+        # lock.acquire()
         dict_objdet[self.frame_id] = res
         # lock.release()
 
@@ -58,17 +59,18 @@ class MOT:
                 online_ids.append(tid)
                 online_scores.append(t.score)
 
-                if self.format == 'bbox':
-                    results[tid] = tlwh[:4]
-                else:
-                    results.append(
-                        f"{self.frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f}\
-                        ,{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
-                    )
+                # if self.format == 'bbox':
+                self.current_MOT[tid] = tlwh[:4]
+                # else:
+                #     self.current_MOT.append(
+                #         f"{self.frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f}\
+                #         ,{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
+                #     )
         else:
             print("MOT outputs is None.")
-
-        dict_MOT[self.frame_id] = results
+        # lock.acquire()
+        dict_MOT[self.frame_id] = self.current_MOT
+        # lock.release()
         self.frame_id += 1
         
         # self.result = results

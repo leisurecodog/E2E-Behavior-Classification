@@ -159,8 +159,11 @@ def GraphRQI ( U_prev, Lis_for_each_video, L_index, Lambda_prev):
             if np.isnan(x_new).any():
                 x_new = x_prev_new_tmp
 
-        u_j = x_new/la.norm(x_new)
-        Lambda_curr[j,j] = (u_j.T@(L@u_j)).item()
+        val = la.norm(x_new)
+        if val == 0:
+            val += 1e-5
+        u_j = x_new / val
+        Lambda_curr[j, j] = (u_j.T@(L@u_j)).item()
         U.append(u_j)
     U = np.array(U).T
     # Lambda_curr[-1,-1] = 1
