@@ -3,7 +3,7 @@ import time
 
 # def run(frame_dict, objdet_dict, MOT_dict, Future_traj_dict, BC_dict, lock):
 def run(*params):
-    frame_dict, objdet_dict, MOT_dict, current_traj_id_dict, Future_traj_dict, BC_dict, lock, reset_flag = params
+    frame_dict, objdet_dict, MOT_dict, current_traj_id_dict, Future_traj_dict, BC_dict, lock = params
     from MOT_module.MOT import MOT
     from TP_module.TP import TP
     from BC_module.BC import BC
@@ -29,7 +29,7 @@ def run(*params):
             module_TP.update_traj(data)
             # current_traj_frame_dict[frame_id] = module_TP.current_frame
             current_traj_frame_list.append(module_TP.current_frame)
-            # print(len(current_traj_frame_list))
+            
 
             for k, v in module_TP.current_frame.items():
                 if k not in current_traj_id_dict:

@@ -89,7 +89,7 @@ class overtaking_system:
         self.overtake_path = []
         self.running = False
         self.msg = ""
-        self.variant = 0.4
+        self.variant = 0.4 # TODO
         self.detect_result = (False, False)
 
     def set_center(self, pt):
@@ -256,7 +256,7 @@ class overtaking_system:
             return
 
         self.lane_mask = lane_mask
-        overlap_ratio = 40.0
+        overlap_ratio = 40.0 # TODO
         obj_flag = False
         # print(self.both_lane_flag)
         for i in range(len(bbs)):

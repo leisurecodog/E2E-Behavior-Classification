@@ -39,8 +39,7 @@ class MOT:
             t1 = time.time()
             online_targets = self.tracker.update(reversed(outputs), [img_info['height'], img_info['width']], [img_info['height'], 
             img_info['width']])
-            self.tracker_time += (time.time()-t1)
-            self.tracker_counter += 1
+            
             online_tlwhs = []
             online_ids = []
             online_scores = []
@@ -58,6 +57,8 @@ class MOT:
                         f"{self.frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f}\
                         ,{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
                     )
+            self.tracker_time += (time.time()-t1)
+            self.tracker_counter += 1
         else:
             print("MOT outputs is None.")
         self.frame_id += 1

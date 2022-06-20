@@ -54,17 +54,18 @@ class OT:
             self.OTS.set_lane([x_coord, y_coord], center_x)
 
         # Yolact pre-stage
+        t1 = time.time()
         frame_tensor = torch.from_numpy(frame).cuda().float()
         batch = self.transform()(frame_tensor.unsqueeze(0))
         with torch.no_grad():
-            t1 = time.time()
+            
             net_outs = self.yolact_model(batch, extras=self.extras) # yolact edge detect lane mask
-            self.yolact_time += (time.time()-t1)
-            self.yolact_counter += 1
+            
         preds = net_outs["pred_outs"]
         # Get lane mask
         lane_mask = self.get_mask(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
-
+        self.yolact_time += (time.time()-t1)
+        self.yolact_counter += 1
         if self.OTS.both_lane_flag:
             # execute ot detect when both lane is detected.
             t1 = time.time()
