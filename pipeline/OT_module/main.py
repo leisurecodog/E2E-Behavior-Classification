@@ -40,7 +40,7 @@ def inference(objdet, frame):
 
     x_coord, y_coord = PInet_test(lane_agent, frame)
     
-    if len(x_coord) > 0 and len(y_coord) > 0:
+    if x_coord is not None and y_coord is not None and len(x_coord) > 0 and len(y_coord) > 0:
         OTS.set_lane([x_coord, y_coord], center_x)
     
     # draw lane after process
@@ -74,7 +74,7 @@ def inference(objdet, frame):
         # t2 = time.time()
         # print("Overtaking time: ", t2-t1)
     else:
-        OTS.msg = "Overtaking is not activate."
+        OTS.msg = "You can't overtake."
 
     return OTS.msg
     # frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)

@@ -7,15 +7,7 @@ from PyQt5.QtCore import pyqtSlot
 
 def window():
    app = QApplication(sys.argv)
-   # widget = QWidget()
 
-   # textLabel = QLabel(widget)
-   # textLabel.setText("Hello World!")
-   # textLabel.move(110,85)
-
-   # widget.setGeometry(50,50,320,200)
-   # widget.setWindowTitle("PyQt5 Example")
-   # widget.show()
    dialog = MyDialog()
    dialog.show()
    sys.exit(app.exec_())
@@ -24,8 +16,9 @@ class MyDialog(QDialog):
     def __init__(self):
         super().__init__()
         self.initUI()
-    def set_img(self, img):
-        self.img = img
+
+    # def set_img(self, img):
+    #     self.img = img
 
     def initUI(self):
         self.resize(400, 300)
@@ -64,6 +57,10 @@ class MyDialog(QDialog):
     def processSlot(self):
         self.img = cv2.blur(self.img, (7, 7))
         self.showImage()
+
+    def set_img(self, img):
+        print("Set image")
+        self.img = img
 
     def showImage(self):
         height, width, channel = self.img.shape

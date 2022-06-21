@@ -71,12 +71,13 @@ def window():
     app = QApplication(sys.argv)
     dialog = MyDialog()
     dialog.show()
-    dialog.set_img()
+    # dialog.set_img()
     sys.exit(app.exec_())
-
+    
 if __name__ == '__main__':
     import system_parser
     import system_class
     import system_class_parallel
     run()
     # window()
+    

@@ -90,6 +90,7 @@ class overtaking_system:
         self.running = False
         self.msg = ""
         self.variant = 0.4
+        self.overlap_rate = 40.0
         self.detect_result = (False, False)
         self.both_lane_flag = False
 
@@ -257,12 +258,12 @@ class overtaking_system:
             return
 
         self.lane_mask = lane_mask
-        overlap_ratio = 40.0
+        
         obj_flag = False
         # print(self.both_lane_flag)
         for i in range(len(bbs)):
             (flag, ratio) = self.overlap_ratio(bbs[i])
-            if ratio > overlap_ratio:
+            if ratio > self.overlap_rate:
                 obj_flag = True
                 break
 

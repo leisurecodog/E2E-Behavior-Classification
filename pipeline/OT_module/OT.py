@@ -50,7 +50,7 @@ class OT:
         self.pinet_time += (time.time()-t1)
         self.pinet_counter += 1
 
-        if len(x_coord) > 0 and len(y_coord) > 0:
+        if x_coord is not None and y_coord is not None and len(x_coord) > 0 and len(y_coord) > 0:
             self.OTS.set_lane([x_coord, y_coord], center_x)
 
         # Yolact pre-stage
