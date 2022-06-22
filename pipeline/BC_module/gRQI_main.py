@@ -152,6 +152,7 @@ def GraphRQI ( U_prev, Lis_for_each_video, L_index, Lambda_prev):
         # print("x_new                 ", x_new)
         # Perform the rqi iterations to compute u_j
         for i in range(1):
+            # print(la.norm(x_new))
             x_old = x_new/la.norm(x_new)
             x_prev_new_tmp = x_new 
             x_new = SM(delta, deltaTranspose, form_block(DU(sigma, U_prev, mu_j, Lambda_prev),mu_j))@x_old
@@ -159,8 +160,8 @@ def GraphRQI ( U_prev, Lis_for_each_video, L_index, Lambda_prev):
             if np.isnan(x_new).any():
                 x_new = x_prev_new_tmp
 
-        u_j = x_new/la.norm(x_new)
-        Lambda_curr[j,j] = (u_j.T@(L@u_j)).item()
+        u_j = x_new / la.norm(x_new)
+        Lambda_curr[j, j] = (u_j.T@(L@u_j)).item()
         U.append(u_j)
     U = np.array(U).T
     # Lambda_curr[-1,-1] = 1

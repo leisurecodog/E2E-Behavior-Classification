@@ -112,9 +112,9 @@ class Seq2Seq(nn.Module):
         teacher_forcing_ratio is probability of using teacher forcing
         e.g. if teacher_forcing_ratio is 0.75 we use ground-truth inputs 75% of the time
         """
-        # print(x)
-        x = torch.reshape(x, (x.shape[0], -1, 2)).permute(1, 0, 2)
-        # print(x)
+        # print(x.shape)
+        x = x.permute(1, 0, 2)
+        
         batch_size = x.shape[1]
         target_len = len
         
@@ -149,5 +149,6 @@ class Seq2Seq(nn.Module):
         # return outputs # torch.mean(hidden_return, dim=0) 
         # if nums != 1:
             # return output[-1]
+        # print(output.shape)
         return output
 

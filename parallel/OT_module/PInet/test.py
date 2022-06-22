@@ -55,60 +55,45 @@ def PInet_test(lane_agent, test_images, thresh = p.threshold_point):
     resize_images = cv2.resize(test_images, (512, 256))
     resize_images = resize_images/255.0
     resize_images = np.rollaxis(resize_images, axis=2, start=0)
-    resize_images=np.array([resize_images])
-
+    resize_images = np.array([resize_images])
+    t1 = time.time()
     result = lane_agent.predict_lanes_test(resize_images)
+    # print("OT inference time: ", (time.time()-t1)*1000)
     confidences, offsets, instances = result[-1]
+
+    ratio_h = test_images.shape[0] / resize_images.shape[2]
+    ratio_w = test_images.shape[1] / resize_images.shape[3]
+
+
+    # test on test data set
+    image = deepcopy(resize_images[0])
+    image =  np.rollaxis(image, axis=2, start=0)
+    image =  np.rollaxis(image, axis=2, start=0)*255.0
+    image = image.astype(np.uint8).copy()
+    #print(type(p.grid_y),type(p.grid_x))
+    confidence = confidences[0].view(int(p.grid_y), int(p.grid_x)).cpu().data.numpy()
+
+    offset = offsets[0].cpu().data.numpy()
+    offset = np.rollaxis(offset, axis=2, start=0)
+    offset = np.rollaxis(offset, axis=2, start=0)
     
-    num_batch = len(resize_images)
+    instance = instances[0].cpu().data.numpy()
+    instance = np.rollaxis(instance, axis=2, start=0)
+    instance = np.rollaxis(instance, axis=2, start=0)
 
-    out_x = []
-    out_y = []
-    out_images = []
+    # generate point and cluster
+    raw_x, raw_y = generate_result(confidence, offset, instance, thresh)
 
-    for i in range(1):
-
-
-        ratio_h = test_images.shape[0] / resize_images.shape[2]
-        ratio_w = test_images.shape[1] / resize_images.shape[3]
-
-
-        # test on test data set
-        image = deepcopy(resize_images[i])
-        image =  np.rollaxis(image, axis=2, start=0)
-        image =  np.rollaxis(image, axis=2, start=0)*255.0
-        image = image.astype(np.uint8).copy()
-        #print(type(p.grid_y),type(p.grid_x))
-        confidence = confidences[i].view(int(p.grid_y), int(p.grid_x)).cpu().data.numpy()
-
-        offset = offsets[i].cpu().data.numpy()
-        offset = np.rollaxis(offset, axis=2, start=0)
-        offset = np.rollaxis(offset, axis=2, start=0)
-        
-        instance = instances[i].cpu().data.numpy()
-        instance = np.rollaxis(instance, axis=2, start=0)
-        instance = np.rollaxis(instance, axis=2, start=0)
-
-        # generate point and cluster
-        raw_x, raw_y = generate_result(confidence, offset, instance, thresh)
-
-        # eliminate fewer points
-        in_x, in_y = eliminate_fewer_points(raw_x, raw_y)
-                
-        # sort points along y 
-        in_x, in_y = sort_along_y(in_x, in_y)  
-        #in_x, in_y = eliminate_out(in_x, in_y, confidence, deepcopy(image))
-        #in_x, in_y = util.sort_along_y(in_x, in_y)
-        #in_x, in_y = eliminate_fewer_points(in_x, in_y)
-        #print(in_x,in_y)
-        in_x, in_y = conversion_coordinate(in_x, in_y, ratio_w, ratio_h)
-        # in_x, in_y=Line_ransac(in_x, in_y, test_images)
-        try:
-            in_x, in_y = Line_ransac(in_x, in_y, test_images)
-        except:
-            in_x = None 
-            in_y = None
-
+    # eliminate fewer points
+    in_x, in_y = eliminate_fewer_points(raw_x, raw_y)
+            
+    # sort points along y 
+    in_x, in_y = sort_along_y(in_x, in_y)  
+    
+    in_x, in_y = conversion_coordinate(in_x, in_y, ratio_w, ratio_h)
+    
+    in_x, in_y = Line_ransac(in_x, in_y, test_images)
+    
     return in_x, in_y
 
 

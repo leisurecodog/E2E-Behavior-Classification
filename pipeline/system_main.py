@@ -33,17 +33,22 @@ def run():
             
             sys.TP.update_traj(sys.MOT.result)
             
-            if sys_args.future and frame_id % interval == 0:
+            if sys.TP.is_some_id_predictable():
+                t1 = time.time()
                 sys.TP.run()
+                print("TP done,,,,,,,", time.time()-t1)
             if sys.BC.is_satisfacation(sys.TP.ID_counter):
-                sys.reset = True
+                # sys.reset = True
+                print("BC done..................")
                 sys.BC.run(sys.TP.traj, sys.TP.future_trajs)
+            t1 = time.time()
             sys.OT.run(sys.MOT.objdet, frame)
-            print(sys.OT.OTS.msg)
+            # print("OT done", time.time()-t1)
+            # print(sys.OT.OTS.msg)
             # frame = System.OT_run(frame) # for debug using.
             stop_flag = False
-            if sys_args.show:
-                stop_flag = sys.show(frame, t_time_1)
+            # if sys_args.show:
+            #     stop_flag = sys.show(frame, t_time_1)
             if stop_flag:
                 cap.release()
                 cv2.destroyAllWindows()
@@ -78,6 +83,9 @@ if __name__ == '__main__':
     import system_parser
     import system_class
     import system_class_parallel
+    import torch
+    print(torch.get_num_threads())
+    torch.set_num_threads(1)
     run()
     # window()
     

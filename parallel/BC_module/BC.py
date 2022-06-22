@@ -2,6 +2,7 @@ from TP_module.util import prGreen
 import time
 import numpy as np
 
+
 class BC:
     def __init__(self, traj_len_required):
         msg = "Initializing BC Module..."
@@ -15,7 +16,7 @@ class BC:
         self.traj_len_required = traj_len_required
         self.mapping_list = None
         self.result = None
-        self.BC_required_len = 30
+        self.BC_required_len = 10
         self.counter = 0
         self.exe_time = 0
         # self.bbox_color = [(255, 255, 255), (0, 0, 255)]
@@ -27,6 +28,7 @@ class BC:
         return True
 
     def preprocess(self, current, future):
+        # print(future)
         # final shape we should get:
         # video_list shape: [number of video, number of frame, number of IDs]
         # label_list shape: [number of video, 1, number of id]
@@ -43,26 +45,23 @@ class BC:
                     fake_label_list[k] = 0
                     sub_frame[k] = frame[k]
             sub_frames.append(sub_frame)
-
+        
         if len(future) > 0:
             future_sub_frames = [dict() for lll in range(self.traj_len_required)]
             for k, v in future.items():
                 if k in self.top_k_ID:
                     for f_idx in range(self.traj_len_required):
                         future_sub_frames[f_idx][k] = v[f_idx]
-
             # make the id number starts from 1
             sub_frames.extend(future_sub_frames)
-
         tmp_traj, new_fake_label_list, self.mapping_list = id_normalize([sub_frames], [[fake_label_list]])
         return (tmp_traj, new_fake_label_list)
 
     def run(self, current_traj, future_traj):
-
-        hint_str = "Behavior Classification without future Trajectory."
+        # hint_str = "Behavior Classification without future Trajectory."
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
-        hint_str = "predict BC using future trajs"
+        # hint_str = "predict BC using future trajs"
         st = time.time()
         # if futures is empty list that mean don't predict future trajectory
         ID_counter_sorted = dict(sorted(self.id_counter.items(), key=lambda item: item[1], reverse=True))

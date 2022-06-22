@@ -77,8 +77,6 @@ class OT:
         else:
             self.OTS.msg = "You can't overtake."
 
-        
-
     def display_lane(self):
         print("Display Lane")
         # draw lane after process

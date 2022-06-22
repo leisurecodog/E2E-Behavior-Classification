@@ -50,10 +50,9 @@ def is_Horizontal_line(y,h,mid):
         if line_count>25:
             return 1
 
-def Line_ransac(x_point,y_point,img):
-    total_xy=[]
-    result_x=[]
-    result_y=[]    
+def Line_ransac(x_point, y_point, img):
+    result_x = []
+    result_y = []    
     for lane_x,lane_y in zip(x_point, y_point):
         x=np.array(deepcopy(lane_x))
         y=np.array(deepcopy(lane_y))
@@ -63,7 +62,7 @@ def Line_ransac(x_point,y_point,img):
                  residual_threshold=1 * np.std(y),
                  random_state=1)
         ransac.fit(np.expand_dims(y, axis=1), x)
-        inlier_mask = ransac.inlier_mask_
+        # inlier_mask = ransac.inlier_mask_
         yfit=np.linspace(int(img.shape[0]/2),img.shape[0],int(img.shape[1]/2))
         xfit= ransac.predict(np.expand_dims(yfit, axis=1))
         eq_coefficient=ransac.estimator_.coeffs

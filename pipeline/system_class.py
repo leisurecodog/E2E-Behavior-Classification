@@ -29,6 +29,7 @@ class DrivingBehaviorSystem:
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.f_id = 0
         self.writer = cv2.VideoWriter('/media/rvl/D/Work/fengan/code/system/output.avi', fourcc, 20.0, (1080, 720))
+        self.avg_fps = 0
     # ========================= Other small function code ==========================
     def show(self, frame, t_total=None):
         bbox = self.MOT.result
@@ -64,15 +65,17 @@ class DrivingBehaviorSystem:
             #     for k, v in self.TP.future_trajs.items():
             #         for x, y in v:
             #             cv2.circle(frame, (int(x), int(y)), 3, (255,0,0), -1)
-            # if t_total is not None:
-            #     cv2.putText(frame, "FPS: "+str(1.0/(time.time()-t_total)), (0, 40),cv2.FONT_HERSHEY_PLAIN,\
-            #             2, (255,255,255), thickness=3)
+            if t_total is not None:
+                fps = 1 / (time.time() - t_total)
+                self.avg_fps += fps
+                cv2.putText(frame, "FPS: "+str(fps), (0, 40),cv2.FONT_HERSHEY_PLAIN,\
+                        2, (255,255,255), thickness=3)
             # wk: if future_traj is drawn, then waitkey set 0 for better visualization.
             wk = 0 if future_traj_flag else 1
-            cv2.imwrite("tmp_img/{}.jpg".format(self.f_id), frame)
+            # cv2.imwrite("tmp_img/{}.jpg".format(self.f_id), frame)
             # self.writer.write(frame)
             cv2.imshow('t', frame)
-            wk = 0
+            wk = 1
             if cv2.waitKey(wk) == 27: # whether is pressed ESC key.
                 print("ESC pressed.")
                 return True

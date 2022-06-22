@@ -56,8 +56,8 @@ def PInet_test(lane_agent, test_images, thresh = p.threshold_point):
     resize_images = resize_images/255.0
     resize_images = np.rollaxis(resize_images, axis=2, start=0)
     resize_images=np.array([resize_images])
-
     result = lane_agent.predict_lanes_test(resize_images)
+    
     confidences, offsets, instances = result[-1]
     
     num_batch = len(resize_images)

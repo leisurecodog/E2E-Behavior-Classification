@@ -24,6 +24,7 @@ class MyDialog(QDialog):
     def __init__(self):
         super().__init__()
         self.initUI()
+        
     def set_img(self, img):
         self.img = img
 

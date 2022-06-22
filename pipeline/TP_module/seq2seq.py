@@ -113,7 +113,9 @@ class Seq2Seq(nn.Module):
         e.g. if teacher_forcing_ratio is 0.75 we use ground-truth inputs 75% of the time
         """
         nums = 3
+        # print(x.shape)
         x = torch.reshape(x, (x.shape[0], -1, 2)).permute(1, 0, 2)
+        # print(x.shape)
         batch_size = x.shape[1]
         target_len = len
         

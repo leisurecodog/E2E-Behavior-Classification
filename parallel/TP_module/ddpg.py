@@ -67,7 +67,7 @@ class DDPG(object):
 
         self.nb_states = nb_states
         self.nb_actions= nb_actions
-        self.inference = args.inference
+        
         # Create Actor and Critic Network
         net_cfg = {
             'hidden1':args.hidden1, 
@@ -84,32 +84,31 @@ class DDPG(object):
         else:
             self.actor = Actor(self.nb_states, self.nb_actions, **net_cfg)
             self.actor_target = Actor(self.nb_states, self.nb_actions, **net_cfg)
-            
-        if not self.inference:
-            self.actor_optim  = Adam(self.actor.parameters(), lr=args.prate)
 
-            self.critic = Critic(self.nb_states, self.nb_actions, **net_cfg)
-            self.critic_target = Critic(self.nb_states, self.nb_actions, **net_cfg)
-            self.critic_optim  = Adam(self.critic.parameters(), lr=args.rate)
+        self.actor_optim  = Adam(self.actor.parameters(), lr=args.prate)
 
-            hard_update(self.actor_target, self.actor) # Make sure target is with the same weight
-            hard_update(self.critic_target, self.critic)
-            
-            #Create replay buffer
-            self.memory = SequentialMemory(limit=args.rmsize, window_length=args.window_length)
-            self.random_process = OrnsteinUhlenbeckProcess(size=nb_actions, theta=args.ou_theta, mu=args.ou_mu, sigma=args.ou_sigma)
+        self.critic = Critic(self.nb_states, self.nb_actions, **net_cfg)
+        self.critic_target = Critic(self.nb_states, self.nb_actions, **net_cfg)
+        self.critic_optim  = Adam(self.critic.parameters(), lr=args.rate)
 
-            # Hyper-parameters
-            self.batch_size = args.bsize
-            self.tau = args.tau
-            self.discount = args.discount
-            self.depsilon = 1.0 / args.epsilon
+        hard_update(self.actor_target, self.actor) # Make sure target is with the same weight
+        hard_update(self.critic_target, self.critic)
+        
+        #Create replay buffer
+        self.memory = SequentialMemory(limit=args.rmsize, window_length=args.window_length)
+        self.random_process = OrnsteinUhlenbeckProcess(size=nb_actions, theta=args.ou_theta, mu=args.ou_mu, sigma=args.ou_sigma)
 
-            # 
-            self.epsilon = 1.0
-            self.s_t = None # Most recent state
-            self.a_t = None # Most recent action
-            self.is_training = True
+        # Hyper-parameters
+        self.batch_size = args.bsize
+        self.tau = args.tau
+        self.discount = args.discount
+        self.depsilon = 1.0 / args.epsilon
+
+        # 
+        self.epsilon = 1.0
+        self.s_t = None # Most recent state
+        self.a_t = None # Most recent action
+        self.is_training = True
 
         # 
         if USE_CUDA: self.cuda()
@@ -157,17 +156,15 @@ class DDPG(object):
 
     def eval(self):
         self.actor.eval()
-        if not self.inference:
-            self.actor_target.eval()
-            self.critic.eval()
-            self.critic_target.eval()
+        self.actor_target.eval()
+        self.critic.eval()
+        self.critic_target.eval()
 
     def cuda(self):
         self.actor.cuda()
-        if not self.inference:
-            self.actor_target.cuda()
-            self.critic.cuda()
-            self.critic_target.cuda()
+        self.actor_target.cuda()
+        self.critic.cuda()
+        self.critic_target.cuda()
 
     def observe(self, r_t, s_t1, done):
         if self.is_training:
@@ -180,20 +177,19 @@ class DDPG(object):
         return action
 
     def select_action(self, s_t, decay_epsilon=True):
-        if USE_CUDA:
-            action = to_numpy(
-                self.actor(to_tensor(np.array(s_t)))
-            )#.squeeze(0)
-        # else:
-        #     ten = torch.from_numpy(np.array([s_t])).to(torch.float32)
-        #     action = self.actor(ten).detach().numpy().squeeze(0)
-        # action += self.is_training*max(self.epsilon, 0)*self.random_process.sample()
+        # action = to_numpy(
+        #     self.actor(to_tensor(np.array([s_t])))
+        # ).squeeze(0)
+        action = to_numpy(
+            self.actor(to_tensor(np.array(s_t)))
+        )
+        action += self.is_training*max(self.epsilon, 0)*self.random_process.sample()
         # action = np.clip(action, -1., 1)
-        if not self.inference:
-            if decay_epsilon:
-                self.epsilon -= self.depsilon
-            
-            self.a_t = action
+
+        if decay_epsilon:
+            self.epsilon -= self.depsilon
+        
+        self.a_t = action
         return action
 
     def reset(self, obs):
@@ -206,10 +202,10 @@ class DDPG(object):
         self.actor.load_state_dict(
             torch.load('{}/actor{}.pkl'.format(output, select_str))
         )
-        if not self.inference:
-            self.critic.load_state_dict(
-                torch.load('{}/critic{}.pkl'.format(output, select_str))
-            )
+
+        self.critic.load_state_dict(
+            torch.load('{}/critic{}.pkl'.format(output, select_str))
+        )
 
 
     def save_model(self, output, best=False):

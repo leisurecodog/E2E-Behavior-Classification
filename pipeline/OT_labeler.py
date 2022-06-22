@@ -45,16 +45,19 @@ def label(mot, path, save_path):
 
 if __name__ == '__main__':
     '''
+    (using yolov5s to detect object.)
+    (detected by yolov5s.)
+     (by yolov5s and) eye 
+
     label criteria:
         ego lane occlusion: 
-            (using yolov5s to detect object.)
-            Have object in Ego lane: occlusion is True
-            No object in Ego lane: don't need to overtake
+            Have object in Ego lane: occlusion.
+            No object in Ego lane: don't need to overtake.
         can't overtake: 
-            1. the detected object is too closed. (how to define what is too closed)
-            2. both side have object (detected by yolov5s.)
+            both side have object 
         one of side lane can be passed: 
-            no object detected in one of lane lange (by yolov5s and) eye.
+            no object in one of lane.
+
     '''
     
     folder = '/media/rvl/D/Work/fengan/Dataset/CEO/20201116/front'

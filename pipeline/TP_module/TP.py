@@ -45,6 +45,9 @@ class TP:
             self.ID_counter[id] += 1
         self.traj.append(frame)
 
+    def is_some_id_predictable(self):
+        return True in [val > self.traj_len_required for val in self.ID_counter.values()]
+
     def predict_traj(self, traj):
         # read last k traj to predict
         init_state = traj[-self.traj_len_required:]
@@ -54,6 +57,8 @@ class TP:
         # get future trajectory that length is the same with trajectory history.
         t1 = time.time()
         for idx in range(self.traj_len_required):
+            # print(current_state.shape)
+            # input()
             action = self.policy(current_state)
             next_traj = [current_state[-2] + action[0], current_state[-1] + action[1]]
             future_traj[idx] = next_traj

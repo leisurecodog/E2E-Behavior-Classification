@@ -15,7 +15,7 @@ class BC:
         self.traj_len_required = traj_len_required
         self.mapping_list = None
         self.result = None
-        self.BC_required_len = 20
+        self.BC_required_len = 10
         self.counter = 0
         self.exe_time = 0
         self.main_time = 0
@@ -46,21 +46,23 @@ class BC:
                     sub_frame[k] = frame[k]
             sub_frames.append(sub_frame)
 
-        if len(future) > 0:
-            future_sub_frames = [dict() for lll in range(self.traj_len_required)]
-            for k, v in future.items():
-                if k in self.top_k_ID:
-                    for f_idx in range(self.traj_len_required):
-                        future_sub_frames[f_idx][k] = v[f_idx]
+        # # if len(future) > 0:
+        # #     future_sub_frames = [dict() for lll in range(self.traj_len_required)]
+        # #     for k, v in future.items():
+        # #         if k in self.top_k_ID:
+        # #             for f_idx in range(self.traj_len_required):
+        # #                 future_sub_frames[f_idx][k] = v[f_idx]
 
-            # make the id number starts from 1
-            sub_frames.extend(future_sub_frames)
-
+        #     # make the id number starts from 1
+        #     sub_frames.extend(future_sub_frames)
+        # print(sub_frames)
+        # input()
         tmp_traj, new_fake_label_list, self.mapping_list = id_normalize([sub_frames], [[fake_label_list]])
         return (tmp_traj, new_fake_label_list)
 
     def run(self, current_traj, future_traj):
-
+        # print(current_traj)
+        # print(future_traj)
         hint_str = "Behavior Classification without future Trajectory."
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
