@@ -42,29 +42,25 @@ class OT:
         
         # Get lane line
         # x_coord, y_coord = [], []
-        # if self.frame_id % 5 == 0:
         x_coord, y_coord = self.lane_predict(self.lane_agent, frame)
         
         if len(x_coord) > 0 and len(y_coord) > 0:
             self.OTS.set_lane([x_coord, y_coord], center_x)
         
-        t2 = time.time()
-        # Yolact pre-stage
-        frame_tensor = torch.from_numpy(frame).cuda().float()
-        batch = self.transform()(frame_tensor.unsqueeze(0))
-        with torch.no_grad():
-            net_outs = self.yolact_model(batch, extras=self.extras) # yolact edge detect lane mask
-        preds = net_outs["pred_outs"]
-        # Get lane mask
-        lane_mask = self.get_mask(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
-        t3 = time.time()
+        # execute ot detect when both lane is detected.
         if self.OTS.both_lane_flag:
-            # execute ot detect when both lane is detected.
-            # t1 = time.time()
+
+            # Yolact pre-stage
+            frame_tensor = torch.from_numpy(frame).cuda().float()
+            batch = self.transform()(frame_tensor.unsqueeze(0))
+            with torch.no_grad():
+                net_outs = self.yolact_model(batch, extras=self.extras) # yolact edge detect lane mask
+            preds = net_outs["pred_outs"]
+            # Get lane mask
+            lane_mask = self.get_mask(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
+            # t3 = time.time()
             self.OTS.detect_overtaking(objdet, lane_mask, frame)
-            # t2 = time.time()
-            # print("detect time:", t2-t1)
-            self.counter += 1
+            # self.counter += 1
             # self.exe_time += (time.time() - st)
         else:
             self.OTS.msg = "You can't overtake."

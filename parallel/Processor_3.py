@@ -1,18 +1,21 @@
 import time
 import cv2
-
-def run(dict_frame, dict_MOT, dict_traj_current, dict_traj_future, dict_BC, dict_OT, lock):    
+from numpy import average
+def run(dict_frame, dict_BC, dict_OT):
+# def run(dict_frame, dict_MOT, dict_traj_current, dict_traj_future, dict_BC, dict_OT):    
     frame_id = 0
     last_frame_time = 0
     average_FPS = 0
     lowest_FPS = 100
     history_traj = {}
+    FPS = 0
     while True:
-        FPS = 0
+        
         # output: show video if all data is in share dictionary.
         # if frame_id in dict_MOT and frame_id in dict_traj_current and frame_id in dict_traj_future:
-        if frame_id in dict_MOT and frame_id in dict_BC and frame_id in dict_OT:
+        # if frame_id in dict_MOT and frame_id in dict_BC and frame_id in dict_OT:
         # if frame_id in dict_MOT and frame_id in dict_OT:
+        if frame_id in dict_frame and frame_id in dict_BC and frame_id in dict_OT:
             entry_time = time.time()
             if frame_id != 0:
                 waiting_time = entry_time - last_frame_time
@@ -20,21 +23,21 @@ def run(dict_frame, dict_MOT, dict_traj_current, dict_traj_future, dict_BC, dict
                 if frame_id > 20:
                     lowest_FPS = min(lowest_FPS, FPS)
 
-                # print("FPS: {}".format(FPS))
+                print("Frame: {} \t FPS: {} \t Average FPS: {}".format(frame_id, FPS, average_FPS/frame_id))
                 average_FPS += FPS
-            bbox = dict_MOT[frame_id]
-            fm = dict_frame[frame_id]
-            # update history_traj dict
-            for ID, current in bbox.items():
-                if ID not in history_traj:
-                    history_traj[ID] = []
-                x1, y1, offset_x, offset_y = current
-                x2, y2 = x1 + offset_x , y1 + offset_y
-                cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,255), 2)
-                cv2.putText(fm, str(ID), (int(x1), int(y1)), cv2.FONT_HERSHEY_PLAIN,\
-                        1, (255, 255, 0), thickness=1)
+            # bbox = dict_MOT[frame_id]
+            # fm = dict_frame[frame_id]
+            # # update history_traj dict
+            # for ID, current in bbox.items():
+            #     if ID not in history_traj:
+            #         history_traj[ID] = []
+            #     x1, y1, offset_x, offset_y = current
+            #     x2, y2 = x1 + offset_x , y1 + offset_y
+            #     cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,255), 2)
+            #     cv2.putText(fm, str(ID), (int(x1), int(y1)), cv2.FONT_HERSHEY_PLAIN,\
+            #             1, (255, 255, 0), thickness=1)
 
-                history_traj[ID].append([x1 + offset_x // 2, y1 + offset_y // 2])
+            #     history_traj[ID].append([x1 + offset_x // 2, y1 + offset_y // 2])
 
             # lock.release()
 

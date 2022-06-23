@@ -24,5 +24,6 @@ def run(sys_args, dict_frame):
             g_frame = frame # TODO
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
-            dict_frame[frame_id] = frame
+            # dict_frame[frame_id] = frame
+            dict_frame.update({frame_id:frame})
             frame_id += 1

@@ -17,6 +17,7 @@ def run():
     cap = cv2.VideoCapture(sys_args.video_path if sys_args.demo == "video" else sys_args.camid)
     frame_id = 0
     interval = 5
+    average_FPS = 0
     while True:
       # ret_val: True -> Read image, False -> No image
       # frame: image frame.
@@ -25,30 +26,38 @@ def run():
       # start working when have image.
         if ret_val:
             g_frame = frame.copy()
-            t_time_1 = time.time()            
+            t_st = time.time()            
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
             # bounding box and ID infomation
+            t1 = time.time()    
             sys.MOT.run(frame)
-            
+            # print("MOT done \t", time.time()-t1)
             sys.TP.update_traj(sys.MOT.result)
             
             if sys.TP.is_some_id_predictable():
                 t1 = time.time()
                 sys.TP.run()
-                print("TP done,,,,,,,", time.time()-t1)
-            if sys.BC.is_satisfacation(sys.TP.ID_counter):
+                # print("TP done \t", time.time()-t1)
+            if sys.BC.is_satisfacation(sys.TP.current_frame_ID_counter):
                 # sys.reset = True
-                print("BC done..................")
-                sys.BC.run(sys.TP.traj, sys.TP.future_trajs)
+                # print("BC done..................")
+                t1 = time.time()    
+                sys.BC.run(sys.TP.traj, sys.TP.result)
+                # print("BC done \t", time.time()-t1)
             t1 = time.time()
             sys.OT.run(sys.MOT.objdet, frame)
-            # print("OT done", time.time()-t1)
+            # print("OT done \t", time.time()-t1)
             # print(sys.OT.OTS.msg)
             # frame = System.OT_run(frame) # for debug using.
             stop_flag = False
             # if sys_args.show:
             #     stop_flag = sys.show(frame, t_time_1)
+
+            t_end = time.time()
+            FPS = 1 / (t_end - t_st)
+            average_FPS += FPS
+            print("FPS: {}, Average FPS: {}".format(FPS, average_FPS/(frame_id+1)))
             if stop_flag:
                 cap.release()
                 cv2.destroyAllWindows()
@@ -59,6 +68,7 @@ def run():
         else:
             print("video is end.")
             break
+    # TODO: clear traj or method like parallel code.
     print("MOT average time:", sys.MOT.exe_time/sys.MOT.counter)
     print("TP average time:", sys.TP.exe_time/sys.TP.counter)
     print("BC average time:", sys.BC.exe_time/sys.BC.counter)

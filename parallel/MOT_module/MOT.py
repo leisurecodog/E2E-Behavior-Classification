@@ -24,7 +24,7 @@ class MOT:
         # self.format = 'bbox'
 
 
-    def run(self, frame, dict_objdet, dict_MOT, lock):
+    def run(self, frame, dict_objdet):
         from MOT_module import yolo_detect
         st = time.time()
         img_info = {}
@@ -36,7 +36,8 @@ class MOT:
         
         res = outputs.cpu().detach().numpy()
         # lock.acquire()
-        dict_objdet[self.frame_id] = res
+        # dict_objdet[self.frame_id] = res
+        dict_objdet.update({self.frame_id:res})
         # lock.release()
 
         # self.objdet = outputs.cpu().detach().numpy()
@@ -58,18 +59,10 @@ class MOT:
                 online_tlwhs.append(tlwh)
                 online_ids.append(tid)
                 online_scores.append(t.score)
-
-                # if self.format == 'bbox':
                 self.current_MOT[tid] = tlwh[:4]
-                # else:
-                #     self.current_MOT.append(
-                #         f"{self.frame_id},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f}\
-                #         ,{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
-                #     )
         else:
             print("MOT outputs is None.")
         # lock.acquire()
-        dict_MOT[self.frame_id] = self.current_MOT
         # lock.release()
         self.frame_id += 1
         

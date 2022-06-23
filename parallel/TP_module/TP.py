@@ -25,23 +25,21 @@ class TP:
         self.agent.eval()
         self.policy = lambda x: self.agent.select_action(x, decay_epsilon=False)
         self.traj = []
+        self.result = None
         self.traj_id_dict = {}
         self.ID_counter = {}
+        self.current_frame_ID_counter = []
+        #######################################
         self.counter = 0
         self.exe_time = 0
         self.single_traj_time = 0
         self.traj_pred_counter = 0
-        self.result = None
-        self.current_frame_id = []
-
-    def update_ID_counter(self, tmp_dict):
-        self.ID_counter = {k:len(v) for k, v in tmp_dict.items()}
-        # for k, v in tmp_dict.items():
-        #     self.ID_counter[k] = len(v)
+        
+        
 
     def update_traj(self, data):
         frame = {}
-        self.current_frame_id = {}
+        self.current_frame_ID_counter = {}
         for ID in data.keys():
             # record ID appear times.
             center_x = data[ID][0] + data[ID][2] // 2
@@ -54,14 +52,12 @@ class TP:
             if ID not in self.ID_counter:
                 self.ID_counter[ID] = 0
             self.ID_counter[ID] += 1
-            self.current_frame_id[ID] = self.ID_counter[ID]
-            
+            self.current_frame_ID_counter[ID] = self.ID_counter[ID] 
         self.traj.append(frame)
 
     def predict_traj(self, total_trajs_id):
         future = []
         state = np.array(total_trajs_id)
-        # print(state.shape)
         for _ in range(self.traj_len_required):
             
             action = self.policy(state) 
@@ -71,52 +67,25 @@ class TP:
             next_state = np.concatenate((state[:,1:,:], next_traj), axis=1)
             state = next_state
         return np.transpose(np.array(future), (1, 0, 2))
-
-    # def predict_traj(self, traj):
-    #     # read last k traj to predict
-    #     init_state = traj[-self.traj_len_required:]
-    #     future_traj = [[]] * self.traj_len_required
-    #     # current_state: [x0, y0, x1, y1, .... xk, yk]
-    #     current_state = np.array(init_state).reshape(-1)
-    #     # current_state = np.array(init_state)
-    #     # get future trajectory that length is the same with trajectory history.
-    #     t1 = time.time()
-    #     for idx in range(self.traj_len_required):
-    #         # print(current_state.shape)
-    #         # input()
-    #         action = self.policy(current_state)
-    #         next_traj = [current_state[-2] + action[0], current_state[-1] + action[1]]
-    #         future_traj[idx] = next_traj
-    #         next_state = np.concatenate((current_state[2:], np.asarray(next_traj, dtype=np.float32)), axis=0)
-    #         current_state = next_state
-    #     t2 = time.time()
-    #     # print("TP time for single trajectory:", t2-t1)
-    #     self.single_traj_time += (t2-t1)
-    #     self.traj_pred_counter += 1
-    #     # print(future_traj)
-    #     return future_traj
         
     def is_some_id_predictable(self):
-        return True in [val > self.traj_len_required for val in self.ID_counter.values()]
+        return True in [val > self.traj_len_required for val in self.current_frame_ID_counter.values()]
 
     def run(self):
         total_trajs_id = []
         self.ids = []
         self.result = {}
-
-        t1 = time.time()
-        for k, v in self.ID_counter.items():
-            if k in self.current_frame_id and v >= self.traj_len_required:
+        for ID, T in self.current_frame_ID_counter.items():
+            if T >= self.traj_len_required:
                 # collect trajs from buffer(self.traj)
-                total_trajs_id.append(self.traj_id_dict[k][-self.traj_len_required:])
-                # traj_id = [frame[k] for frame in self.traj if k in frame]
-                # res = self.predict_traj(traj_id)
-                self.ids.append(k)
+                total_trajs_id.append(self.traj_id_dict[ID][-self.traj_len_required:])
+                self.ids.append(ID)
 
         if len(total_trajs_id) > 0:
             self.future = self.predict_traj(total_trajs_id)
-            for i in range(len(self.ids)):
-                self.result[self.ids[i]] = self.future[i].tolist()
+            self.result = {self.ids[i]:self.future[i].tolist() for i in range(len(self.ids))}
+            # for i in range(len(self.ids)):
+            #     self.result[self.ids[i]] = self.future[i].tolist()
        
 
     def traj_reset(self):
