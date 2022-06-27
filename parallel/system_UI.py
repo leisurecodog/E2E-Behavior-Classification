@@ -4,70 +4,61 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QGridLayout, QLabel, QPushButton, QWidget
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
+from PyQt5 import QtWidgets, QtCore
 
-def window():
-   app = QApplication(sys.argv)
-   # widget = QWidget()
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(1280, 720)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(150, 30, 800, 600))
+        self.label.setObjectName("label")
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1280, 22))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
 
-   # textLabel = QLabel(widget)
-   # textLabel.setText("Hello World!")
-   # textLabel.move(110,85)
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-   # widget.setGeometry(50,50,320,200)
-   # widget.setWindowTitle("PyQt5 Example")
-   # widget.show()
-   dialog = MyDialog()
-   dialog.show()
-   sys.exit(app.exec_())
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.label.setText(_translate("MainWindow", "TextLabel"))
 
-class MyDialog(QDialog):
+class MainWindow_controller(QtWidgets.QMainWindow):
     def __init__(self):
-        super().__init__()
-        self.initUI()
-        
-    def set_img(self, img):
-        self.img = img
+        super().__init__() # in python3, super(Class, self).xxx = super().xxx
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.setup_control()
 
-    def initUI(self):
-        self.resize(400, 300)
-        self.label = QLabel()
-        self.btnOpen = QPushButton('Open Image', self)
-        self.btnProcess = QPushButton('Blur Image', self)
-        self.btnSave = QPushButton('Save Image', self)
-        self.btnSave.setEnabled(False)
+    def setup_control(self, fm=None):
+        # TODO
+        self.img_path = 'cat.jpg'
+        self.fm = fm
+        # self.display_img()
+        self.change_img()
 
-        layout = QGridLayout(self)
-        layout.addWidget(self.label, 0, 0, 4, 4)
-        layout.addWidget(self.btnOpen, 4, 0, 1, 1)
-        layout.addWidget(self.btnProcess, 4, 1, 1, 1)
-        layout.addWidget(self.btnSave, 4, 2, 1, 1)
-
-        self.btnOpen.clicked.connect(self.openSlot)
-        self.btnProcess.clicked.connect(self.processSlot)
-        self.btnSave.clicked.connect(self.saveSlot)
-
-    def openSlot(self):
-        # filename, _ = QFileDialog.getOpenFileName(self, 'Open Image', 'Image', '*.png *.jpg *.bmp')
-        # if filename is '':
-        #     return
-        # self.img = cv2.imread(filename, -1)
-        # if self.img.size == 1:
-        #     return
-        self.showImage()
-        self.btnSave.setEnabled(True)
-
-    def saveSlot(self):
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save Image', 'Image', '*.png *.jpg *.bmp')
-        if filename is '':
-            return
-        cv2.imwrite(filename, self.img)
-
-    def processSlot(self):
-        self.img = cv2.blur(self.img, (7, 7))
-        self.showImage()
-
-    def showImage(self):
+    def display_img(self):
+        self.img = cv2.imread(self.img_path)
         height, width, channel = self.img.shape
         bytesPerline = 3 * width
-        self.qImg = QImage(self.img.data, width, height, bytesPerline, QImage.Format_RGB888).rgbSwapped()
-        self.label.setPixmap(QPixmap.fromImage(self.qImg))
+        self.qimg = QImage(self.img, width, height, bytesPerline, QImage.Format_RGB888).rgbSwapped()
+        self.ui.label.setPixmap(QPixmap.fromImage(self.qimg))
+        self.ui.label.adjustSize()
+
+    def change_img(self):
+        if self.fm is None:
+            return
+        height, width, channel = self.fm.shape
+        bytesPerline = 3 * width
+        self.qimg = QImage(self.fm, width, height, bytesPerline, QImage.Format_RGB888).rgbSwapped()
+        self.ui.label.setPixmap(QPixmap.fromImage(self.qimg))
+        self.ui.label.adjustSize()

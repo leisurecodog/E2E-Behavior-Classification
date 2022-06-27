@@ -1,9 +1,8 @@
 from system_util import ID_check
 import time
 
-# def run(frame_dict, objdet_dict, MOT_dict, Future_traj_dict, BC_dict, lock):
+
 def run(*params):
-    # frame_dict, objdet_dict, MOT_dict, current_traj_id_dict, Future_traj_dict, BC_dict = params
     frame_dict, objdet_dict, BC_dict = params
     from MOT_module.MOT import MOT
     from TP_module.TP import TP
@@ -14,12 +13,26 @@ def run(*params):
     frame_id = 0
     execute_freq = 1
     show_msg_flag = False
-    # ==================================================
+    # read test
+    # import cv2
+    # import system_parser
+    # sys_args = sys_args = system_parser.get_parser()
+    # cap = cv2.VideoCapture(sys_args.video_path)
+
+    # ==================================================z
     while True:
+        # read test
+        # ret_val, frame = cap.read()
+        # if ret_val:
+        #     if sys_args.resize:
+        #         frame = cv2.resize(frame, (sys_args.size))
+        #     frame_dict.update({frame_id:frame})
+        # read test end =================================================
+
         if frame_id in frame_dict:
-            data = frame_dict[module_MOT.frame_id]
+            frame = frame_dict[module_MOT.frame_id]
             t1 = time.time()
-            module_MOT.run(data, objdet_dict)
+            module_MOT.run(frame, objdet_dict)
             if show_msg_flag:
                 print("MOT done ", time.time() - t1)
             # MOT_dict.update({frame_id:module_MOT.current_MOT})

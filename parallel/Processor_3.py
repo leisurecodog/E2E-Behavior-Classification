@@ -10,12 +10,8 @@ def run(dict_frame, dict_BC, dict_OT):
     history_traj = {}
     FPS = 0
     while True:
-        
         # output: show video if all data is in share dictionary.
-        # if frame_id in dict_MOT and frame_id in dict_traj_current and frame_id in dict_traj_future:
-        # if frame_id in dict_MOT and frame_id in dict_BC and frame_id in dict_OT:
-        # if frame_id in dict_MOT and frame_id in dict_OT:
-        if frame_id in dict_frame and frame_id in dict_BC and frame_id in dict_OT:
+        if (frame_id in dict_frame) and (frame_id in dict_BC) and (frame_id in dict_OT):
             entry_time = time.time()
             if frame_id != 0:
                 waiting_time = entry_time - last_frame_time

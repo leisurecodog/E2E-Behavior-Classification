@@ -1,6 +1,7 @@
 import cv2
-
-def run(sys_args, dict_frame):
+import system_parser
+def run(dict_frame):
+    
     '''
     function of Input_reader:
         Description:
@@ -11,7 +12,7 @@ def run(sys_args, dict_frame):
         Output:
             None
     '''
-    global g_frame
+    sys_args = sys_args = system_parser.get_parser()
     cap = cv2.VideoCapture(sys_args.video_path)
     frame_id = 0
     while True:
