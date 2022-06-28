@@ -1,8 +1,12 @@
 import time
 import cv2
 from numpy import average
+import numpy as np
+g_frame = np.zeros((720, 640, 3))
+
 def run(dict_frame, dict_BC, dict_OT):
 # def run(dict_frame, dict_MOT, dict_traj_current, dict_traj_future, dict_BC, dict_OT):    
+
     frame_id = 0
     last_frame_time = 0
     average_FPS = 0
@@ -12,6 +16,7 @@ def run(dict_frame, dict_BC, dict_OT):
     while True:
         # output: show video if all data is in share dictionary.
         if (frame_id in dict_frame) and (frame_id in dict_BC) and (frame_id in dict_OT):
+            fm = dict_frame[frame_id]
             entry_time = time.time()
             if frame_id != 0:
                 waiting_time = entry_time - last_frame_time
@@ -59,5 +64,6 @@ def run(dict_frame, dict_BC, dict_OT):
             # wk = 1
             # if cv2.waitKey(wk) == 27:
             #     break
+            
             frame_id += 1
             last_frame_time = entry_time

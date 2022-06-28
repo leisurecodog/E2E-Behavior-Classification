@@ -14,17 +14,13 @@ import numpy as np
 from system_util import ID_check
 import threading
 
-
 from PyQt5 import QtWidgets, QtCore
 from system_UI import MainWindow_controller
 import sys
 app = QtWidgets.QApplication(sys.argv)
 UI_window = MainWindow_controller()
 
-g_frame = np.zeros((720, 640, 3))
-
 def run():
-    global g_frame
     '''
     main Process: execute OT module
     '''
@@ -68,28 +64,27 @@ def run():
     #     dict_traj_id_dict, dict_traj_future, 
     #     dict_BC,))
     p_list[2] = torch_mp.Process(target=Input_reader, args=(dict_frame,))
-    # p_list[2] = torch_mp.Process(target=window, args=(dict_frame,))
+
     # start each subprocess
-    
-    for i in range(2):
+    for i in range(3):
         p_list[i].start()
 
-    import cv2
-    import system_parser
-    sys_args = sys_args = system_parser.get_parser()
-    cap = cv2.VideoCapture(sys_args.video_path)
+    # import cv2
+    # import system_parser
+    # sys_args = sys_args = system_parser.get_parser()
+    # cap = cv2.VideoCapture(sys_args.video_path)
     
     frame_id = 0
     while True:
-
         if frame_id in dict_objdet:
             frame = dict_frame[frame_id]
             t1 = time.time()
             module_OT.run(frame, dict_objdet[frame_id])
             # dict_OT[frame_id] = module_OT.OTS.msg
+            g_frame = frame.copy()
             dict_OT.update({frame_id:module_OT.OTS.msg})
-            
             frame_id += 1
+
     
     for i in range(3):
         p_list[i].join()
@@ -106,14 +101,18 @@ def window():
             break
 
 if __name__ == '__main__':
-    # import torch
-    # # print(torch.get_num_threads())
-    # torch.set_num_threads(1)
-    # torch_mp.set_start_method('spawn')
+    import torch
+    # print(torch.get_num_threads())
+    torch.set_num_threads(1)
+    torch_mp.set_start_method('spawn')
 
-    t1 = threading.Thread(target=window)
+    t1 = threading.Thread(target=run)
     t1.start()
-    # run()
+
     UI_window.show()
     sys.exit(app.exec_())
+    # t1 = threading.Thread(target=window)
+    # t1.start()
+    # run()
+    
     # t1.kill()
