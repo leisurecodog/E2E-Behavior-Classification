@@ -3,7 +3,7 @@ import time
 
 
 def run(*params):
-    frame_dict, objdet_dict, BC_dict = params
+    frame_dict, objdet_dict, BC_dict, MOT_dict = params
     from MOT_module.MOT import MOT
     from TP_module.TP import TP
     from BC_module.BC import BC
@@ -35,7 +35,7 @@ def run(*params):
             module_MOT.run(frame, objdet_dict)
             if show_msg_flag:
                 print("MOT done ", time.time() - t1)
-            # MOT_dict.update({frame_id:module_MOT.current_MOT})
+            MOT_dict.update({frame_id:module_MOT.current_MOT})
             data = module_MOT.current_MOT.copy()
             
             # ======================== Update current trajectory Buffer ======================

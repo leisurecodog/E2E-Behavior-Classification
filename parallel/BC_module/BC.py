@@ -62,14 +62,17 @@ class BC:
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
         # hint_str = "predict BC using future trajs"
-        st = time.time()
         # if futures is empty list that mean don't predict future trajectory
         ID_counter_sorted = dict(sorted(self.id_counter.items(), key=lambda item: item[1], reverse=True))
         self.top_k_ID = [k for idx, k in enumerate(ID_counter_sorted) if idx < self.BC_args.id_num]
         trajs, labels = self.preprocess(current_traj, future_traj)
+        st1 = time.time()
         adj = computeA(trajs, labels, self.BC_args.neighber, self.BC_args.dataset, True)
+        st2 = time.time()
         Laplacian_Matrices = extractLi(adj)
+        st3 = time.time()
         U_Matrices = RQI(Laplacian_Matrices)
+        st4 = time.time()
         new_Matrices = np.reshape(U_Matrices, (-1, self.BC_args.id_num)) 
         res = self.classifier.predict(new_Matrices)
         # In One Class SVM classification result,
@@ -79,6 +82,7 @@ class BC:
         for k, v in self.mapping_list.items():
             self.result[v] = res[k]
         
-        # print("BC time: ", time.time()-st)
+        # print("BC time: ", st2-st, time.time()-st2)
+        print("??????", st2-st1, st3-st2, st4-st3)
         self.counter += 1
-        self.exe_time += (time.time() - st)
+        self.exe_time += (time.time() - st1)
