@@ -6,7 +6,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets, QtCore
 import numpy as np
-
+import threading
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")

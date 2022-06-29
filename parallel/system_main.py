@@ -38,26 +38,25 @@ def run():
     from Processor_1 import run as P1_run, run2
     from Processor_2 import run as Input_reader
     from Processor_3 import run as Output_reader
-    
+    from p4 import p4
     
     
     # create subprocess
     p_list = [[]] * 3
-    p_list[0] = torch_mp.Process(target=run2,
-    args=(dict_UI, dict_frame, dict_objdet, dict_BC, dict_MOT, dict_OT))
-        # dict_MOT, dict_traj_id_dict, 
-        # dict_traj_future, dict_BC,))
-    # p_list[2] = torch_mp.Process(target=Output_reader, args=(dict_frame, dict_BC, dict_OT, dict_MOT,)) # dict_MOT, 
-    #     dict_traj_id_dict, dict_traj_future, 
-    #     dict_BC,))
+    p_list[0] = torch_mp.Process(target=P1_run,
+    # args=(dict_UI, dict_frame, dict_objdet, dict_BC, dict_MOT, dict_OT))
+    args=(dict_frame, dict_objdet, dict_BC, dict_MOT, dict_OT))
+        
+    p_list[2] = torch_mp.Process(target=Output_reader, args=(dict_frame, dict_BC, dict_OT, dict_MOT,)) # dict_MOT, 
     p_list[1] = torch_mp.Process(target=Input_reader, args=(dict_UI, dict_frame,))
-
+    # p_list[2] = torch_mp.Process(target=p4, args=(dict_frame,dict_objdet,dict_OT,))
+    
     # start each subprocess
-    for i in range(2):
+    for i in range(3):
         p_list[i].start()
         
-    while dict_UI['start'] == False:
-        continue
+    # while dict_UI['start'] == False:
+    #     continue
     module_OT = OT()
     frame_id = 0
     while True:

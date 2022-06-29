@@ -12,9 +12,9 @@ def run(dict_UI, dict_frame):
         Output:
             None
     '''
-    while dict_UI['start'] == False:
-        continue
-    print("HIHIHIHIHIHIII")
+    # while dict_UI['start'] == False:
+    #     continue
+    
     sys_args = sys_args = system_parser.get_parser()
     cap = cv2.VideoCapture(sys_args.video_path)
     frame_id = 0

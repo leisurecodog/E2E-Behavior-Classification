@@ -81,11 +81,12 @@ def rd_func(dict_frame, dict_BC, dict_OT, dict_MOT):
             frame_id += 1
             last_frame_time = entry_time
 
-def run(dict_UI, dict_frame, dict_BC, dict_OT, dict_MOT):
+# def run(dict_UI, dict_frame, dict_BC, dict_OT, dict_MOT):
+def run(dict_frame, dict_BC, dict_OT, dict_MOT):
 # def run(dict_frame, dict_MOT, dict_traj_current, dict_traj_future, dict_BC, dict_OT):
     # from system_main import UI_window
-    while dict_UI['start'] == False:
-        continue
+    # while dict_UI['start'] == False:
+    #     continue
     t1 = threading.Thread(target=rd_func, args=(dict_frame, dict_BC, dict_OT, dict_MOT,))
     t1.start()
     # UI_window.show()

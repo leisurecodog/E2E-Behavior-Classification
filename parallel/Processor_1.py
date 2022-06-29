@@ -6,15 +6,14 @@ from PyQt5 import QtWidgets, QtCore
 from system_UI import MainWindow_controller
 import sys
 
-
-app = QtWidgets.QApplication(sys.argv)
-
-UI_window = MainWindow_controller()
+# app = QtWidgets.QApplication(sys.argv)
+# UI_window = MainWindow_controller()
 
 
 
 def run(*params):
-    stop_event, UI_dict, frame_dict, objdet_dict, BC_dict, MOT_dict, OT_dict = params
+    # UI_dict, 
+    frame_dict, objdet_dict, BC_dict, MOT_dict, OT_dict = params
 
     from MOT_module.MOT import MOT
     from TP_module.TP import TP
@@ -29,7 +28,8 @@ def run(*params):
     total_fps = 0
     counter = 0
     # ==================================================
-    while not stop_event.is_set():
+    # while not stop_event.is_set():
+    while True:
         if frame_id in frame_dict:
             frame = frame_dict[module_MOT.frame_id]
             # print(frame.shape)
@@ -60,16 +60,16 @@ def run(*params):
                         print("BC done ", time.time() - t1)
                 BC_dict.update({frame_id:module_BC.result})
                 # BC_dict[frame_id] = module_BC.result
-                while frame_id not in OT_dict:
-                    continue
-                if entry_time != 0:
-                    ts = time.time() - entry_time
-                    FPS = 1 / ts
-                    total_fps += FPS
-                    counter += 1
-                    print(total_fps / counter)
-                entry_time = time.time()
-                UI_window.set_img(frame)
+                # while frame_id not in OT_dict:
+                #     continue
+                # if entry_time != 0:
+                #     ts = time.time() - entry_time
+                #     FPS = 1 / ts
+                #     total_fps += FPS
+                #     counter += 1
+                #     print(total_fps / counter)
+                # entry_time = time.time()
+                # UI_window.set_img(frame)
             else:
                 # Future_traj_dict.update({frame_id:None})
                 BC_dict.update({frame_id:None})
