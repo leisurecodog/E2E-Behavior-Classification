@@ -1,6 +1,6 @@
 import cv2
 import system_parser
-def run(dict_frame):
+def run(dict_UI, dict_frame):
     
     '''
     function of Input_reader:
@@ -12,6 +12,9 @@ def run(dict_frame):
         Output:
             None
     '''
+    while dict_UI['start'] == False:
+        continue
+    print("HIHIHIHIHIHIII")
     sys_args = sys_args = system_parser.get_parser()
     cap = cv2.VideoCapture(sys_args.video_path)
     frame_id = 0
