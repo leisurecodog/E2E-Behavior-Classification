@@ -1,19 +1,21 @@
 
-from multiprocessing.connection import wait
-# from sys import last_traceback
+# from multiprocessing.connection import wait
 import torch.multiprocessing as torch_mp
+import torch
 import threading
 # from os import system
 import cv2
-# from system_UI import MyDialog
-# from PyQt5.QtGui import QImage, QPixmap
-# from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QGridLayout, QLabel, QPushButton, QWidget
-# from PyQt5.QtGui import QIcon
-# from PyQt5.QtCore import pyqtSlot
+import sys
 import time
 import numpy as np
 from system_util import ID_check
 
+#
+from PyQt5 import QtWidgets, QtCore
+from system_UI import MainWindow_controller
+app = QtWidgets.QApplication(sys.argv)
+UI_window = MainWindow_controller()
+#
 
 def run():
     '''
@@ -41,7 +43,7 @@ def run():
     from Processor_1 import run as P1_run, run2
     from Processor_2 import run as Input_reader
     from Processor_3 import run as Output_reader
-    from p4 import p4
+    # from p4 import p4
     module_OT = OT()
     # create subprocess
     p_list = [[]] * 3
@@ -91,8 +93,9 @@ def run():
 
 
 if __name__ == '__main__':
-    import torch
-    # print(torch.get_num_threads())
-    torch.set_num_threads(1)
     torch_mp.set_start_method('spawn')
-    run()
+    torch.set_num_threads(1)    
+    # run()
+
+    UI_window.show()
+    sys.exit(app.exec_())

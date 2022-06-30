@@ -2,10 +2,10 @@ from system_util import ID_check
 import time
 import threading
 import cv2
-from PyQt5 import QtWidgets, QtCore
-from system_UI import MainWindow_controller
 import sys
 
+from PyQt5 import QtWidgets, QtCore
+from system_UI import MainWindow_controller
 app = QtWidgets.QApplication(sys.argv)
 UI_window = MainWindow_controller()
 

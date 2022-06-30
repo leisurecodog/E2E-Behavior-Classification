@@ -49,10 +49,33 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         super().__init__() # in python3, super(Class, self).xxx = super().xxx
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.init_processes()
         ze = np.zeros((480, 640, 3))
         self.set_img(ze)
         self.setup_control()
-
+        
+    def init_processes(self):
+        import torch.multiprocessing as torch_mp
+        manager = torch_mp.Manager()
+        self.dict_frame = manager.dict() # save frame
+        self.dict_objdet = manager.dict() # save objdet result
+        # self.dict_MOT = manager.dict() # save MOT result
+        # self.dict_traj_id_dict = manager.dict() # save traj by format {id : traj}
+        # self.dict_traj_future = manager.dict()
+        # self.dict_BC = manager.dict()
+        self.dict_OT = manager.dict()
+        self.dict_UI = manager.dict() # save frame
+        self.dict_UI['start'] = False
+        self.dict_UI['TP'] = False
+        self.dict_UI['stop'] = False
+        from Processor_1 import run as P1_run, run2
+        from Processor_2 import run as Input_reader
+        from Processor_3 import run as Output_reader
+        from Processor_4 import p4
+        # P1 is MOT-TP-BC Processor, maybe UI will combine in
+        self.p1 = threading.Thread(target=P1_run, args=(self.dict_frame, self.dict_objdet))
+        self.p2 = 
+        self.p3 = 
     def set_component(self, dic, t1, stop_event):
         self.share_dict = dic
         self.t1 = t1
@@ -73,14 +96,6 @@ class MainWindow_controller(QtWidgets.QMainWindow):
     def setup_control(self):
         self.ui.btn_start.clicked.connect(self.start_func)
         self.ui.btn_hello.clicked.connect(self.stop_func)
-
-    def display_img(self):
-        self.img = cv2.imread(self.img_path)
-        height, width, channel = self.img.shape
-        bytesPerline = 3 * width
-        self.qimg = QImage(self.img, width, height, bytesPerline, QImage.Format_RGB888).rgbSwapped()
-        self.ui.label.setPixmap(QPixmap.fromImage(self.qimg))
-        self.ui.label.adjustSize()
 
     def change_img(self):
         height, width, channel = self.fm.shape
