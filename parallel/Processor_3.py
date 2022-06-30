@@ -3,11 +3,11 @@ import cv2
 from numpy import average
 import numpy as np
 import threading
-# from PyQt5 import QtWidgets, QtCore
-# from system_UI import MainWindow_controller
+from PyQt5 import QtWidgets, QtCore
+from system_UI import MainWindow_controller
 import sys
-# app = QtWidgets.QApplication(sys.argv)
-# UI_window = MainWindow_controller()
+app = QtWidgets.QApplication(sys.argv)
+UI_window = MainWindow_controller()
 
 
 def rd_func(dict_frame, dict_BC, dict_OT, dict_MOT):
@@ -19,16 +19,14 @@ def rd_func(dict_frame, dict_BC, dict_OT, dict_MOT):
     FPS = 0
     while True:
         # output: show video if all data is in share dictionary.
-        if (frame_id in dict_frame):
+        if (frame_id in dict_OT) and (frame_id in dict_BC):
             # fm = dict_frame[frame_id]
             
             # UI_window.setup_control(fm)
             
             
-            fm = dict_frame[frame_id]
+            # fm = dict_frame[frame_id]
             # update history_traj dict
-            while frame_id not in dict_MOT:
-                continue
             # bbox = dict_MOT[frame_id]
             # for ID, current in bbox.items():
             #     # if ID not in history_traj:
@@ -44,15 +42,13 @@ def rd_func(dict_frame, dict_BC, dict_OT, dict_MOT):
             #     continue
             # while frame_id not in dict_OT:
             #     continue
-            entry_time = time.time()
             if frame_id != 0:
-                waiting_time = entry_time - last_frame_time
+                waiting_time = time.time() - last_frame_time
                 FPS = 1 / waiting_time
-                if frame_id > 20:
-                    lowest_FPS = min(lowest_FPS, FPS)
-
-                print("Frame: {} \t FPS: {} \t Average FPS: {}".format(frame_id, FPS, average_FPS/frame_id))
                 average_FPS += FPS
+                print("Frame: {} \t FPS: {} \t Average FPS: {}".format(frame_id, FPS, average_FPS/frame_id))
+                
+            last_frame_time = time.time()
             # lock.release()
 
             # if BC_result_flag and id in self.BC.result.keys():
@@ -78,8 +74,9 @@ def rd_func(dict_frame, dict_BC, dict_OT, dict_MOT):
             # if cv2.waitKey(wk) == 27:
             #     break
             # UI_window.setup_control(fm)
+            # UI_window.set_img(fm)
             frame_id += 1
-            last_frame_time = entry_time
+            
 
 # def run(dict_UI, dict_frame, dict_BC, dict_OT, dict_MOT):
 def run(dict_frame, dict_BC, dict_OT, dict_MOT):

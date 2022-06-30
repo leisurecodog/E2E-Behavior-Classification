@@ -83,6 +83,6 @@ class BC:
             self.result[v] = res[k]
         
         # print("BC time: ", st2-st, time.time()-st2)
-        print("??????", st2-st1, st3-st2, st4-st3)
+        # print("??????", st2-st1, st3-st2, st4-st3)
         self.counter += 1
         self.exe_time += (time.time() - st1)
