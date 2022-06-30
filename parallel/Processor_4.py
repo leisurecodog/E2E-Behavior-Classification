@@ -1,6 +1,7 @@
-from OT_module.OT import OT
-import time
+
 def p4(dict_frame, dict_objdet, dict_OT):
+    from OT_module.OT import OT
+    import time
     module_OT = OT()
     frame_id = 0
     while True:
