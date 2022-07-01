@@ -21,9 +21,9 @@ class Ui_MainWindow(object):
         self.label_vid = QtWidgets.QLabel(self.centralwidget)
         self.label_vid.setGeometry(QtCore.QRect(30, 30, 1080, 720))
         self.label_vid.setObjectName("label_vid")
-        self.label_fps = QtWidgets.QLabel(self.centralwidget)
-        self.label_fps.setObjectName("label_fps")
-        self.label_fps.move(800, 335)
+        # self.label_fps = QtWidgets.QLabel(self.centralwidget)
+        # self.label_fps.setObjectName("label_fps")
+        # self.label_fps.move(800, 335)
         self.label_opened = QtWidgets.QLabel(self.centralwidget)
         self.label_opened.setObjectName("label_opened_file")
         self.label_opened.move(800, 435)
@@ -58,6 +58,7 @@ class Ui_MainWindow(object):
         self.checkbox_TP.setChecked(True)
         self.checkbox_OT = QCheckBox('active OT module', self.centralwidget)
         self.checkbox_OT.move(700, 250)
+        self.checkbox_TP.setChecked(True)
         # button
         self.btn_start = QtWidgets.QPushButton(self.centralwidget)
         self.btn_start.setObjectName("start_btn")
@@ -84,7 +85,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label_vid.setText(_translate("MainWindow", "TextLabel"))
         self.label_opened.setText(_translate("MainWindow", "./"))
-        self.label_fps.setText(_translate("MainWindow", "FPS:"))
+        # self.label_fps.setText(_translate("MainWindow", "FPS:"))
         self.btn_start.setText(_translate("MainWindow", "Start"))
         self.btn_stop.setText(_translate("MainWindow", "Stop"))
         self.file_button.setText(_translate("MainWindow", "Open File"))
@@ -175,6 +176,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.ui.file_button.clicked.connect(self.open_file) 
         self.ui.checkbox_TP.stateChanged.connect(self.active_TP)
         self.ui.checkbox_OT.stateChanged.connect(self.active_OT)
+        self.ui.checkbox_disp.stateChanged.connect(self.disp_config)
         self.ui.btn_quit.clicked.connect(self.close_App)
 
     def open_file(self):
@@ -192,6 +194,12 @@ class MainWindow_controller(QtWidgets.QMainWindow):
     def active_OT(self):
         self.config['OT'] = self.ui.checkbox_OT.isChecked()
         print(self.ui.checkbox_OT.isChecked())
+
+    def disp_config(self):
+        disp_state = self.ui.checkbox_disp.isChecked()
+        self.ui.checkbox_MOT.setEnabled(disp_state)
+        self.ui.checkbox_TP1.setEnabled(disp_state)
+        self.ui.checkbox_TP2.setEnabled(disp_state)
 
     def save_display_result(self):
         print("Save display Result, TODO")
