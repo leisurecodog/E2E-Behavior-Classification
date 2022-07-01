@@ -4,8 +4,6 @@ from numpy import average
 import numpy as np
 import sys
 
-
-
 def run(dict_frame, dict_BC, dict_OT, event, qt_set_img):
     frame_id = 0
     entry_time = 0
