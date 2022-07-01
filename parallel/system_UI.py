@@ -7,6 +7,9 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets, QtCore
 import numpy as np
 import threading
+import time
+import torch.multiprocessing as torch_mp
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -34,15 +37,16 @@ class Ui_MainWindow(object):
         # check box 
         self.checkbox_TP = QCheckBox('active TP module', self.centralwidget)
         self.checkbox_TP.move(700, 200)
+        self.checkbox_TP.setChecked(True)
         self.checkbox_OT = QCheckBox('active OT module', self.centralwidget)
         self.checkbox_OT.move(700, 250)
         # button
         self.btn_start = QtWidgets.QPushButton(self.centralwidget)
         self.btn_start.setObjectName("start_btn")
         self.btn_start.move(700, 480)
-        self.btn_hello = QtWidgets.QPushButton(self.centralwidget)
-        self.btn_hello.setObjectName("stop_btn")
-        self.btn_hello.move(800, 480)
+        self.btn_stop = QtWidgets.QPushButton(self.centralwidget)
+        self.btn_stop.setObjectName("stop_btn")
+        self.btn_stop.move(800, 480)
         self.file_button = QtWidgets.QPushButton(self.centralwidget)
         self.file_button.setObjectName("Open file")
         self.file_button.move(700, 430)
@@ -63,7 +67,7 @@ class Ui_MainWindow(object):
         self.label_vid.setText(_translate("MainWindow", "TextLabel"))
         self.label_opened.setText(_translate("MainWindow", "./"))
         self.btn_start.setText(_translate("MainWindow", "Start"))
-        self.btn_hello.setText(_translate("MainWindow", "Stop"))
+        self.btn_stop.setText(_translate("MainWindow", "Stop"))
         self.file_button.setText(_translate("MainWindow", "Open File"))
         self.btn_save.setText(_translate("MainWindow", "Save"))
         self.btn_quit.setText(_translate("MainWindow", "Quit"))
@@ -73,36 +77,48 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         super().__init__() # in python3, super(Class, self).xxx = super().xxx
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        # self.init_processes() # not finish
+        self.manager = torch_mp.Manager()
+        self.init_config()
+        self.init_mem()
         ze = np.zeros((480, 640, 3))
         self.set_img(ze)
         self.setup_control()
         
+    def init_config(self):
+        self.config = dict()
+        self.config['TP'] = self.ui.checkbox_TP.isChecked()
+        self.config['OT'] = self.ui.checkbox_OT.isChecked()
+
+    def init_mem(self):
+        # share memory config =========================================
+        self.dict_frame = self.manager.dict() # save frame
+        self.dict_objdet = self.manager.dict() # save objdet result
+        self.dict_MOT = self.manager.dict() # save MOT result
+        self.dict_traj_id_dict = self.manager.dict() # save traj by format {id : traj}
+        self.dict_traj_future = self.manager.dict()
+        self.dict_BC = self.manager.dict()
+        self.dict_OT = self.manager.dict()
+        
+        self.end_event = threading.Event()
+        # share memory config =========================================
     def init_processes(self):
         import torch.multiprocessing as torch_mp
-        manager = torch_mp.Manager()
-        self.dict_frame = manager.dict() # save frame
-        self.dict_objdet = manager.dict() # save objdet result
-        # self.dict_MOT = manager.dict() # save MOT result
-        # self.dict_traj_id_dict = manager.dict() # save traj by format {id : traj}
-        # self.dict_traj_future = manager.dict()
-        # self.dict_BC = manager.dict()
-        self.dict_OT = manager.dict()
-        self.dict_UI = manager.dict() # save config
-        self.dict_UI['start'] = False
-        self.dict_UI['TP'] = False
-        self.dict_UI['OT'] = False
-        self.dict_UI['stop'] = False
-        from Processor_1 import run as P1_run, run2
-        from Processor_2 import run as Input_reader
-        from Processor_3 import run as Output_reader
-        from Processor_4 import p4
-        # P1 is MOT-TP-BC Processor, maybe Output & UI will combine in. TODO
-        # P2 is OT Processor.
-        # P3 is Input Processor, for read image from video.
-        self.p1 = threading.Thread(target=P1_run, args=(self.dict_frame, self.dict_objdet))
-        self.p2 = torch_mp.Process(target=p4, args=(self.dict_frame, self.dict_objdet, self.dict_OT,))
-        self.p3 = torch_mp.Process(target=Input_reader, args=(self.dict_UI, self.dict_frame,))
+        from Processor_1 import run as P1_run
+        from Processor_2 import run as OT_run
+        from Processor_3 import run as Input_reader
+        from Processor_4 import run as Output_reader
+        # create subprocess
+        self.p_list = [[]] * 3
+        self.p_list[0] = torch_mp.Process(target=OT_run, 
+        args=(self.dict_frame, self.dict_objdet, self.dict_OT,))
+        self.p_list[1] = torch_mp.Process(target=P1_run,
+        args=(self.dict_frame, self.dict_objdet, self.dict_BC, self.dict_MOT, self.dict_OT))
+        self.p_list[2] = torch_mp.Process(target=Input_reader, args=(self.config['video_path'], self.dict_frame,))
+        # p_list[3] = torch_mp.Process(target=Output_reader, 
+        # args=(dict_frame, dict_BC, dict_OT,)) 
+        self.t1 = threading.Thread(target=Output_reader, 
+        args=(self.dict_frame, self.dict_BC, self.dict_OT, self.end_event, self.set_img))
+        # start each subprocess
         
     def set_img(self, fm):
         self.fm = cv2.resize(fm, (640, 480))
@@ -113,15 +129,29 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.ui.label_vid.adjustSize()
 
     def start_func(self):
-        self.share_dict['start'] = True
+        self.ui.checkbox_OT.setEnabled(False)
+        self.ui.checkbox_TP.setEnabled(False)
+        self.ui.file_button.setEnabled(False)
+        self.init_mem()
+        self.init_processes()
+        for i in range(3):
+            self.p_list[i].start()
+            if i == 0:
+                time.sleep(8)
         self.t1.start()
     
     def stop_func(self):
-        self.stop_event.set()
+        self.ui.checkbox_OT.setEnabled(True)
+        self.ui.checkbox_TP.setEnabled(True)
+        self.ui.file_button.setEnabled(True)
+        for i in range(len(self.p_list)):
+            self.p_list[i].terminate()
+        self.end_event.set()
+        
 
     def setup_control(self):
         self.ui.btn_start.clicked.connect(self.start_func)
-        self.ui.btn_hello.clicked.connect(self.stop_func)
+        self.ui.btn_stop.clicked.connect(self.stop_func)
         self.ui.btn_save.clicked.connect(self.save_display_result)
         self.ui.file_button.clicked.connect(self.open_file) 
         self.ui.checkbox_TP.stateChanged.connect(self.active_TP)
@@ -131,20 +161,23 @@ class MainWindow_controller(QtWidgets.QMainWindow):
     def open_file(self):
         filename, filetype = QFileDialog.getOpenFileName(self, "Open file", "../../../Dataset/CEO/20201116")
         if filename != '':
+            self.config['video_path'] = filename
             self.ui.label_opened.setText(filename.split('/')[-1])
             self.ui.label_opened.adjustSize()
         print(filename, filetype)
     
     def active_TP(self):
-        # self.ui.dict_UI['TP'] = True
+        self.config['TP'] = self.ui.checkbox_TP.isChecked()
         print(self.ui.checkbox_TP.isChecked())
 
     def active_OT(self):
-        self.ui.dict_UI['OT'] = True
+        self.config['OT'] = self.ui.checkbox_OT.isChecked()
+        print(self.ui.checkbox_OT.isChecked())
 
     def save_display_result(self):
         print("Save display Result, TODO")
 
     def close_App(self):
+        self.stop_func()
         self.close()
 

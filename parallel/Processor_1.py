@@ -4,10 +4,10 @@ import threading
 import cv2
 import sys
 
-from PyQt5 import QtWidgets, QtCore
-from system_UI import MainWindow_controller
-app = QtWidgets.QApplication(sys.argv)
-UI_window = MainWindow_controller()
+# from PyQt5 import QtWidgets, QtCore
+# from system_UI import MainWindow_controller
+# app = QtWidgets.QApplication(sys.argv)
+# UI_window = MainWindow_controller()
 
 def run(*params):
     # UI_dict, 
@@ -22,7 +22,7 @@ def run(*params):
     frame_id = 0
     
     execute_freq = 1
-    show_msg_flag = True
+    show_msg_flag = not True
     entry_time = 0
     total_fps = 0
     counter = 0
@@ -36,7 +36,8 @@ def run(*params):
             t1 = time.time()
             module_MOT.run(frame, objdet_dict)
             if show_msg_flag:
-                print("MOT done ", time.time() - t1, frame_id)
+                # print("MOT done ", time.time() - t1, frame_id)
+                print("MOT done \t {}".format(frame_id))
             MOT_dict.update({frame_id:module_MOT.current_MOT})
             data = module_MOT.current_MOT.copy()
             # ======================== Update current trajectory Buffer ======================
@@ -49,7 +50,8 @@ def run(*params):
                     t1 = time.time()
                     module_TP.run()
                     if show_msg_flag:
-                        print("TP done ", time.time() - t1, frame_id)
+                        # print("TP done ", time.time() - t1, frame_id)
+                        print("TP done \t {}".format(frame_id))
                 
                 # Future_traj_dict.update({frame_id:module_TP.result})
                 # ======================== BC Working ======================
@@ -57,7 +59,8 @@ def run(*params):
                     t1 = time.time()
                     module_BC.run(module_TP.traj, module_TP.result)
                     if show_msg_flag:
-                        print("BC done ", time.time() - t1, frame_id)
+                        # print("BC done ", time.time() - t1, frame_id)
+                        print("BC done \t {}".format(frame_id))
                 BC_dict.update({frame_id:module_BC.result})
                 # BC_dict[frame_id] = module_BC.result
                 # if module_TP.result is not None and len(module_TP.result) != 0:

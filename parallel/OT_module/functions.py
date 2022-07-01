@@ -91,6 +91,7 @@ class overtaking_system:
         self.msg = ""
         self.variant = 0.4 # TODO
         self.detect_result = (False, False)
+        self.both_lane_flag = False
 
     def set_center(self, pt):
         self.center = pt

@@ -1,33 +1,18 @@
-import cv2
-import system_parser
-def run(dict_UI, dict_frame):
-    
-    '''
-    function of Input_reader:
-        Description:
-            Read frame from video and put each frame into dict_frame container.
-        Input:
-            sys_args: All args using for system is there, more detail arguments please see system_parser.py
-            dict_frame: A dictionary from torch.mp.manager.dict, it responses for storing frame.
-        Output:
-            None
-    '''
-    # while dict_UI['start'] == False:
-    #     continue
-    
-    sys_args = sys_args = system_parser.get_parser()
-    cap = cv2.VideoCapture(sys_args.video_path)
+def run(dict_frame, dict_objdet, dict_OT):
+    from OT_module.OT import OT
+    import time
+    module_OT = OT()
     frame_id = 0
+    entry_time = 0
+    total_fps = 0
+    counter = 0
     while True:
-        '''
-        ret_val: { True -> Read image, False -> No image }
-        frame: image frame.
-        '''
-        ret_val, frame = cap.read()
-        if ret_val:
-            g_frame = frame # TODO
-            if sys_args.resize:
-                frame = cv2.resize(frame, (sys_args.size))
-            # dict_frame[frame_id] = frame
-            dict_frame.update({frame_id:frame})
+        if frame_id in dict_objdet:
+            frame = dict_frame[frame_id]
+            t1 = time.time()
+            module_OT.run(frame, dict_objdet[frame_id])
+            dict_OT.update({frame_id:module_OT.OTS.msg})
+            # print("OT done \t {}".format(frame_id))
+            t2 = time.time() - t1
+
             frame_id += 1

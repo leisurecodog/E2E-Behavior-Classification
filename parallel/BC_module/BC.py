@@ -46,7 +46,7 @@ class BC:
                     sub_frame[k] = frame[k]
             sub_frames.append(sub_frame)
         
-        if len(future) > 0:
+        if future is not None and len(future) > 0:
             future_sub_frames = [dict() for lll in range(self.traj_len_required)]
             for k, v in future.items():
                 if k in self.top_k_ID:
