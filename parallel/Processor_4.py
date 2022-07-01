@@ -15,9 +15,6 @@ def run(dict_frame, dict_BC, dict_OT, event, qt_set_img):
         # print("Frame id {}".format(frame_id), event.is_set())
         if event.is_set():
             print("EXIT")
-            del dict_frame
-            del dict_BC
-            del dict_OT
             break
         # output: show video if all data is in share dictionary.
         # if (frame_id in dict_OT) and (frame_id in dict_BC):
