@@ -67,7 +67,7 @@ class Ui_MainWindow(object):
         self.checkbox_TP.setChecked(True)
         self.checkbox_OT = QCheckBox('active OT module', self.centralwidget)
         self.checkbox_OT.move(700, 250)
-        self.checkbox_TP.setChecked(True)
+        self.checkbox_OT.setChecked(True)
         # button
         self.btn_start = QtWidgets.QPushButton(self.centralwidget)
         self.btn_start.setObjectName("start_btn")
@@ -84,6 +84,12 @@ class Ui_MainWindow(object):
         self.btn_quit = QtWidgets.QPushButton(self.centralwidget)
         self.btn_quit.setObjectName("quit_btn")
         self.btn_quit.move(1000, 480)
+        self.btn_track = QtWidgets.QPushButton(self.centralwidget)
+        self.btn_track.setObjectName("track_btn")
+        self.btn_track.move(900, 149)
+        self.btn_track_clear = QtWidgets.QPushButton(self.centralwidget)
+        self.btn_track_clear.setObjectName("track_clear_btn")
+        self.btn_track_clear.move(990, 149)
         # textbox
         self.textbox_MOT_ID = QLineEdit(self.centralwidget)
         self.textbox_MOT_ID.move(730, 150)
@@ -104,24 +110,31 @@ class Ui_MainWindow(object):
         self.file_button.setText(_translate("MainWindow", "Open File"))
         self.btn_save.setText(_translate("MainWindow", "Save"))
         self.btn_quit.setText(_translate("MainWindow", "Quit"))
+        self.btn_track.setText(_translate("MainWindow", "Track"))
+        self.btn_track_clear.setText(_translate("MainWindow", "Clear"))
         self.label_id.setText(_translate("MainWindow", "ID: "))
-
+# ==========================================================================================
 class MainWindow_controller(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.manager = torch_mp.Manager()
-        self.init_config()
+        self.config = dict()
+        
         self.init_mem()
-        ze = np.zeros((480, 640, 3))
-        self.set_img(ze)
+        self.black_screen = np.zeros((480, 640, 3))
+        self.set_img(self.black_screen)
         self.setup_control()
         
     def init_config(self):
-        self.config = dict()
         self.config['TP'] = self.ui.checkbox_TP.isChecked()
         self.config['OT'] = self.ui.checkbox_OT.isChecked()
+        self.config['Exit'] = False # threading.Event()
+        self.config['MOT'] = self.ui.checkbox_MOT.isChecked() # threading.Event()
+        self.config['HTP'] = self.ui.checkbox_TP1.isChecked()
+        self.config['FTP'] = self.ui.checkbox_TP2.isChecked()
+        self.config['ID'] = 0
 
     def init_mem(self):
         # share memory config =========================================
@@ -133,7 +146,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.dict_BC = self.manager.dict()
         self.dict_OT = self.manager.dict()
         
-        self.end_event = threading.Event()
+        
         # share memory config =========================================
     def init_processes(self):
         import torch.multiprocessing as torch_mp
@@ -151,7 +164,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # p_list[3] = torch_mp.Process(target=Output_reader, 
         # args=(dict_frame, dict_BC, dict_OT,)) 
         self.t1 = threading.Thread(target=Output_reader, 
-        args=(self.dict_frame, self.dict_BC, self.dict_OT, self.end_event, self.set_img))
+        args=(self.dict_frame, self.dict_MOT, self.dict_BC, self.dict_OT, self.config, self.set_img))
         # start each subprocess
         
     def set_img(self, fm):
@@ -167,11 +180,11 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.ui.checkbox_OT.setEnabled(flag)
         self.ui.checkbox_TP.setEnabled(flag)
         self.ui.file_button.setEnabled(flag)
-        self.ui.checkbox_disp.setEnabled(flag)
-        if flag == False:
-            self.disp_config(flag)
-        else:
-            self.disp_config()
+        # self.ui.checkbox_disp.setEnabled(flag)
+        # if flag == False:
+        #     self.disp_config(flag)
+        # else:
+        #     self.disp_config()
 
     def start_func(self):
         video_ext = ['MOV', 'mov', 'avi', 'AVI', 'mp4', 'MP4']
@@ -181,6 +194,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
             self.ui.label_opened.setText("Please Select a File.")
             self.ui.label_opened.adjustSize()
             return 
+        self.init_config()
         self.utilities_set_all(False)
         self.init_mem()
         self.init_processes()
@@ -192,10 +206,12 @@ class MainWindow_controller(QtWidgets.QMainWindow):
     
     def stop_func(self):
         try:
+            self.config['Exit'] = True
+            self.t1.join()
             self.utilities_set_all(True)
             for i in range(len(self.p_list)):
                 self.p_list[i].terminate()
-            self.end_event.set()
+            self.set_img(self.black_screen)
         except Exception as e:
             print(type(e).__name__, e)
         
@@ -204,14 +220,19 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.ui.btn_stop.clicked.connect(self.stop_func)
         self.ui.btn_save.clicked.connect(self.save_display_result)
         self.ui.file_button.clicked.connect(self.open_file) 
+        self.ui.btn_track.clicked.connect(self.ID_select)
+        self.ui.btn_track_clear.clicked.connect(self.clear_ID)
         self.ui.checkbox_TP.stateChanged.connect(self.active_TP)
         self.ui.checkbox_OT.stateChanged.connect(self.active_OT)
+        self.ui.checkbox_MOT.stateChanged.connect(self.MOT_cb)
+        self.ui.checkbox_TP1.stateChanged.connect(self.TP1_cb)
+        self.ui.checkbox_TP2.stateChanged.connect(self.TP2_cb)
         self.ui.checkbox_disp.stateChanged.connect(self.disp_config)
         self.ui.btn_quit.clicked.connect(self.close_App)
-        self.ui.checkbox_MOT.stateChanged.connect(self.MOT_cb)
 
+        
     def open_file(self):
-        filename, filetype = QFileDialog.getOpenFileName(self, "Open file", "../../../Dataset/CEO/20201116")
+        filename, filetype = QFileDialog.getOpenFileName(self, "Open file", "../../../Dataset/CEO/20201116/front/")
         if filename != '':
             self.config['video_path'] = filename
             self.ui.label_opened.setText(filename.split('/')[-1])
@@ -220,8 +241,22 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         print(filename, filetype)
     
     def MOT_cb(self):
-        self.ui.textbox_MOT_ID.setEnabled(self.ui.checkbox_MOT.isChecked())
+        self.config['MOT'] = self.ui.checkbox_MOT.isChecked()
+    def TP1_cb(self):
+        self.config['HTP'] = self.ui.checkbox_TP1.isChecked()
+    def TP2_cb(self):
+        self.config['FTP'] = self.ui.checkbox_TP2.isChecked()
 
+    def ID_select(self):
+        ID = self.ui.textbox_MOT_ID.text()
+        if ID == '':
+            self.config['ID'] = 0
+        else:
+            self.config['ID'] = int(ID)
+    def clear_ID(self):
+        self.config['ID'] = 0
+        self.ui.textbox_MOT_ID.clear()
+        
     def active_TP(self):
         self.config['TP'] = self.ui.checkbox_TP.isChecked()
         print(self.ui.checkbox_TP.isChecked())

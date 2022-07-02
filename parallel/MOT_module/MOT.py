@@ -28,13 +28,12 @@ class MOT:
         from MOT_module import yolo_detect
         st = time.time()
         img_info = {}
-        self.current_MOT = {}
+        self.current_MOT = None
         t1 = time.time()
         outputs = yolo_detect.detect(self.object_predictor, self.imgsz, self.names, frame)
         self.yolo_time += (time.time()-t1)
         self.yolo_counter += 1
-        
-        res = outputs.cpu().detach().numpy()
+        res = outputs.cpu().detach().numpy() if outputs is not None else None
         # lock.acquire()
         # dict_objdet[self.frame_id] = res
         dict_objdet.update({self.frame_id:res})
@@ -45,6 +44,7 @@ class MOT:
         img_info['raw_img'] = frame
 
         if outputs is not None:
+            self.current_MOT = {}
             t1 = time.time()
             online_targets = self.tracker.update(reversed(outputs), [img_info['height'], img_info['width']], [img_info['height'], 
             img_info['width']])
