@@ -161,12 +161,15 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.t1.start()
     
     def stop_func(self):
-        self.ui.checkbox_OT.setEnabled(True)
-        self.ui.checkbox_TP.setEnabled(True)
-        self.ui.file_button.setEnabled(True)
-        for i in range(len(self.p_list)):
-            self.p_list[i].terminate()
-        self.end_event.set()
+        try:
+            self.ui.checkbox_OT.setEnabled(True)
+            self.ui.checkbox_TP.setEnabled(True)
+            self.ui.file_button.setEnabled(True)
+            for i in range(len(self.p_list)):
+                self.p_list[i].terminate()
+            self.end_event.set()
+        except Exception as e:
+            print(type(e).__name__, e)
         
 
     def setup_control(self):
