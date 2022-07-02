@@ -1,11 +1,13 @@
 import sys
 import cv2
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QGridLayout, QLabel, QPushButton, QWidget, QCheckBox
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog
+from PyQt5.QtWidgets import QGridLayout, QLabel, QPushButton, QWidget, QCheckBox, QLineEdit
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtWidgets, QtCore
 import numpy as np
+import os
 import threading
 import time
 import torch.multiprocessing as torch_mp
@@ -13,7 +15,9 @@ import torch.multiprocessing as torch_mp
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1280, 550)
+        width, height = 1100, 550
+        MainWindow.resize(width, height)
+        
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.centralwidget.move(100, 0)
@@ -21,6 +25,11 @@ class Ui_MainWindow(object):
         self.label_vid = QtWidgets.QLabel(self.centralwidget)
         self.label_vid.setGeometry(QtCore.QRect(30, 30, 1080, 720))
         self.label_vid.setObjectName("label_vid")
+
+        self.label_id = QtWidgets.QLabel(self.centralwidget)
+        self.label_id.setObjectName("ID selector")
+        self.label_id.move(700, 150)
+        self.label_id.setFont(QFont('Arial', 12))
         # self.label_fps = QtWidgets.QLabel(self.centralwidget)
         # self.label_fps.setObjectName("label_fps")
         # self.label_fps.move(800, 335)
@@ -31,7 +40,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         # barbarbar
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1280, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, width, 22))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -71,10 +80,14 @@ class Ui_MainWindow(object):
         self.file_button.move(700, 430)
         self.btn_save = QtWidgets.QPushButton(self.centralwidget)
         self.btn_save.setObjectName("save_btn")
-        self.btn_save.move(1000, 480)
+        self.btn_save.move(900, 480)
         self.btn_quit = QtWidgets.QPushButton(self.centralwidget)
         self.btn_quit.setObjectName("quit_btn")
-        self.btn_quit.move(1150, 480)
+        self.btn_quit.move(1000, 480)
+        # textbox
+        self.textbox_MOT_ID = QLineEdit(self.centralwidget)
+        self.textbox_MOT_ID.move(730, 150)
+        self.textbox_MOT_ID.setEnabled(False)
 
 
         self.retranslateUi(MainWindow)
@@ -91,10 +104,11 @@ class Ui_MainWindow(object):
         self.file_button.setText(_translate("MainWindow", "Open File"))
         self.btn_save.setText(_translate("MainWindow", "Save"))
         self.btn_quit.setText(_translate("MainWindow", "Quit"))
+        self.label_id.setText(_translate("MainWindow", "ID: "))
 
 class MainWindow_controller(QtWidgets.QMainWindow):
     def __init__(self):
-        super().__init__() # in python3, super(Class, self).xxx = super().xxx
+        super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.manager = torch_mp.Manager()
@@ -148,10 +162,26 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.ui.label_vid.setPixmap(QPixmap.fromImage(self.qimg))
         self.ui.label_vid.adjustSize()
 
+    def utilities_set_all(self, flag):
+
+        self.ui.checkbox_OT.setEnabled(flag)
+        self.ui.checkbox_TP.setEnabled(flag)
+        self.ui.file_button.setEnabled(flag)
+        self.ui.checkbox_disp.setEnabled(flag)
+        if flag == False:
+            self.disp_config(flag)
+        else:
+            self.disp_config()
+
     def start_func(self):
-        self.ui.checkbox_OT.setEnabled(False)
-        self.ui.checkbox_TP.setEnabled(False)
-        self.ui.file_button.setEnabled(False)
+        video_ext = ['MOV', 'mov', 'avi', 'AVI', 'mp4', 'MP4']
+        if 'video_path' not in self.config or \
+        self.config['video_path'].split('.')[-1] not in video_ext:
+            self.ui.label_opened.setStyleSheet('color:red')
+            self.ui.label_opened.setText("Please Select a File.")
+            self.ui.label_opened.adjustSize()
+            return 
+        self.utilities_set_all(False)
         self.init_mem()
         self.init_processes()
         for i in range(3):
@@ -162,16 +192,13 @@ class MainWindow_controller(QtWidgets.QMainWindow):
     
     def stop_func(self):
         try:
-            self.ui.checkbox_OT.setEnabled(True)
-            self.ui.checkbox_TP.setEnabled(True)
-            self.ui.file_button.setEnabled(True)
+            self.utilities_set_all(True)
             for i in range(len(self.p_list)):
                 self.p_list[i].terminate()
             self.end_event.set()
         except Exception as e:
             print(type(e).__name__, e)
         
-
     def setup_control(self):
         self.ui.btn_start.clicked.connect(self.start_func)
         self.ui.btn_stop.clicked.connect(self.stop_func)
@@ -181,15 +208,20 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.ui.checkbox_OT.stateChanged.connect(self.active_OT)
         self.ui.checkbox_disp.stateChanged.connect(self.disp_config)
         self.ui.btn_quit.clicked.connect(self.close_App)
+        self.ui.checkbox_MOT.stateChanged.connect(self.MOT_cb)
 
     def open_file(self):
         filename, filetype = QFileDialog.getOpenFileName(self, "Open file", "../../../Dataset/CEO/20201116")
         if filename != '':
             self.config['video_path'] = filename
             self.ui.label_opened.setText(filename.split('/')[-1])
+            self.ui.label_opened.setStyleSheet('color:black')
             self.ui.label_opened.adjustSize()
         print(filename, filetype)
     
+    def MOT_cb(self):
+        self.ui.textbox_MOT_ID.setEnabled(self.ui.checkbox_MOT.isChecked())
+
     def active_TP(self):
         self.config['TP'] = self.ui.checkbox_TP.isChecked()
         print(self.ui.checkbox_TP.isChecked())
@@ -198,11 +230,14 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.config['OT'] = self.ui.checkbox_OT.isChecked()
         print(self.ui.checkbox_OT.isChecked())
 
-    def disp_config(self):
+    def disp_config(self, flag=None):
         disp_state = self.ui.checkbox_disp.isChecked()
+        if flag is not None:
+            disp_state = flag
         self.ui.checkbox_MOT.setEnabled(disp_state)
         self.ui.checkbox_TP1.setEnabled(disp_state)
         self.ui.checkbox_TP2.setEnabled(disp_state)
+        self.ui.textbox_MOT_ID.setEnabled(disp_state)
 
     def save_display_result(self):
         print("Save display Result, TODO")

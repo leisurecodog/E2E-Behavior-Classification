@@ -90,6 +90,7 @@ class overtaking_system:
         self.running = False
         self.msg = ""
         self.variant = 0.4 # TODO
+        self.overlap_rate = 40.0
         self.detect_result = (False, False)
         self.both_lane_flag = False
 
@@ -164,13 +165,12 @@ class overtaking_system:
         else:
             self.msg = "You don't need to overtake."
 
-    def find_nearest_idx(self, value): 
-        
+    def find_nearest_idx(self, value):
         l_idx = np.abs(self.left_lane[1] - value).argmin()
         r_idx = np.abs(self.right_lane[1] - value).argmin()
         return (l_idx, r_idx)
 
-    def overlap_ratio(self, bb):
+    def overlap(self, bb):
         # bb: [x1, y1, x2, y2]
         flag = 0 # flag: -1 mean bb on left of lane, 0 mean middle, 1 mean right of lane
         bbWid = bb[2] - bb[0] # calculate bottom width of bounding box.
@@ -257,12 +257,12 @@ class overtaking_system:
             return
 
         self.lane_mask = lane_mask
-        overlap_ratio = 40.0 # TODO
+        # overlap_ratio = 40.0 # TODO
         obj_flag = False
         # print(self.both_lane_flag)
         for i in range(len(bbs)):
-            (flag, ratio) = self.overlap_ratio(bbs[i])
-            if ratio > overlap_ratio:
+            (flag, ratio) = self.overlap(bbs[i])
+            if ratio > self.overlap_rate:
                 obj_flag = True
                 break
 
