@@ -2,6 +2,7 @@ from TP_module.util import prGreen
 import time
 import numpy as np
 import torch
+import cv2
 
 class OT:    
     def __init__(self):
@@ -35,7 +36,7 @@ class OT:
         self.counter = 0
         self.exe_time = 0
 
-    def run(self, frame, objdet):
+    def run(self, frame, objdet, test=False):
         # st = time.time()
         # frame.shape: [Height, Width, Channels]
         center_x = frame.shape[1] / 2 # get image center
@@ -49,7 +50,7 @@ class OT:
         
         # execute ot detect when both lane is detected.
         if self.OTS.both_lane_flag:
-
+            
             # Yolact pre-stage
             frame_tensor = torch.from_numpy(frame).cuda().float()
             batch = self.transform()(frame_tensor.unsqueeze(0))
@@ -60,25 +61,21 @@ class OT:
             lane_mask = self.get_mask(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
             # t3 = time.time()
             self.OTS.detect_overtaking(objdet, lane_mask, frame)
+            if test:
+                for i in range(len(self.OTS.left_lane[0])):
+                    cv2.circle(frame, (int(self.OTS.left_lane[0][i]), int(self.OTS.left_lane[1][i])), 3, (0, 0, 255), -1)
+                for i in range(len(self.OTS.right_lane[0])):
+                    cv2.circle(frame, (int(self.OTS.right_lane[0][i]), int(self.OTS.right_lane[1][i])), 3, (0, 0, 255), -1)
+                frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
+                if self.OTS.both_lane_flag:
+                    cv2.putText(frame, "{} {} {} {}".format(self.OTS.cant_flag, self.OTS.dneed_flag, self.OTS.obj_flag, self.OTS.res_flag)\
+                        , (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)            
             # self.counter += 1
             # self.exe_time += (time.time() - st)
         else:
-            self.OTS.msg = "You can't overtake."
+            self.OTS.set_msg(0)
         t4 = time.time()
         self.frame_id += 1
+        if test:
+            return frame
         # print(t3-t2, t4-t3)
-
-    def display_lane(self):
-        print("Display Lane")
-        # draw lane after process
-        # if OTS.both_lane_flag and draw_laneline_flag:
-            # for i in range(len(OTS.left_lane[0])):
-                # x, y = OTS.left_lane[:, i]
-                # cv2.circle(frame, (int(x), int(y)), 2, (255,255,255), 2)
-            # for i in range(len(OTS.right_lane[0])):
-                # x, y = OTS.right_lane[:, i]
-                # cv2.circle(frame, (int(x), int(y)), 2, (255,255,255), 2)
-        # for i in range(len(objdet)):
-            # x1, y1 = objdet[i][:2]
-            # x2, y2 = objdet[i][2:4]
-            # cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,255))

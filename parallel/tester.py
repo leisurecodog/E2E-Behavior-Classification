@@ -4,39 +4,6 @@ import os
 import cv2
 from OT_module.OT import OT
 
-# g_best_acc = 0
-# g_olap_r = 0
-# g_var = 0
-# g_best_acc_ano = 0
-# g_olap_r_ano = 0
-# g_var_ano = 0
-# g_dict = dict()
-# def update_result(acc, acc_ano, overlap_r, var, reset_flag=False):
-#     global g_best_acc, g_olap_r, g_var, g_best_acc_ano, g_olap_r_ano, g_var_ano
-#     # print("overlap_r: {} \t lane_var: {} \t acc: {} \t acc_ano: {}".format(r1, round(r2, 3), acc, ano_acc))
-#     if reset_flag:
-#         g_best_acc = 0
-#         g_olap_r = 0
-#         g_var =  0
-#         g_best_acc_ano = 0
-#         g_olap_r_ano = 0
-#         g_var_ano = 0
-#         return
-#     if acc > g_best_acc:
-#         g_best_acc = acc
-#         g_olap_r = overlap_r
-#         g_var = var
-#         print("Update Best Accuracy: {} ,using these param: olap {} & var {}."\
-#             .format(acc, overlap_r, var))
-#     if acc_ano >= g_best_acc_ano:
-#         g_olap_r_ano = overlap_r
-#         g_var_ano = var
-#         if acc_ano == g_best_acc_ano:
-#             return 
-#         g_best_acc_ano = acc_ano
-#         print("Update Best Accuracy \"Ano\": {} ,using these param: olap {} & var {}."\
-#             .format(acc_ano, overlap_r, var))
-
 dict_msg = {"You can't overtake.":0, "You can overtake from left side.": 1,\
      "You don't need to overtake.":2, "You can overtake from right side.":3}
 
@@ -102,11 +69,18 @@ def test_OT(label_path):
                         frame_id += offset
                         continue
                     outputs = outputs.cpu().detach().numpy()
-                    module_OT.run(fm, outputs)
+                    fm = module_OT.run(fm, outputs, test=False)
                     msg = module_OT.OTS.msg
+                    # for b in outputs:
+                    #     nb = [int(d) for d in b[:4]]
+                    #     cv2.rectangle(fm, (nb[0], nb[1]), (int(nb[2]), int(nb[3])), (255,255,255), 2)
+                    #     cv2.putText(fm, str(nb[2]-nb[0]), (nb[0], nb[3]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                    # cv2.putText(fm, str(dict_label[frame_id]), (0, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                    # cv2.putText(fm, msg, (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                    # cv2.imshow('t', fm)
+                    # cv2.waitKey(0)
                     # print(dict_msg[msg], dict_label[frame_id])
                     acc_time += 1 if dict_msg[msg] == dict_label[frame_id] else 0
-
                     # make can't overtake as same as don't need to overtake.
                     pred_label = dict_msg[msg]
                     gt_label = dict_label[frame_id]
@@ -129,5 +103,6 @@ def test_OT(label_path):
 
 if __name__ == '__main__':
     
-    path = '../../OT_label_Depth/labels'
+    # path = '../../OT_label_Depth/labels'
+    path = 'labels_backup'
     test_OT(path)

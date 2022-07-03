@@ -1,3 +1,4 @@
+# from fcntl import F_SEAL_SEAL
 from cv2 import line
 import numpy as np
 from functools import cmp_to_key
@@ -87,7 +88,6 @@ class overtaking_system:
         else:
             self.center = [x,y]
         self.overtake_path = []
-        self.running = False
         self.msg = ""
         self.variant = 0.4 # TODO
         self.overlap_rate = 40.0
@@ -97,8 +97,7 @@ class overtaking_system:
     def set_center(self, pt):
         self.center = pt
 
-    def set_working_wtate(self, flag):
-        self.running = flag
+    
 
     def update_lane(self):
         self.left_lane = np.array(self.left_lane, dtype=np.int32)
@@ -155,14 +154,14 @@ class overtaking_system:
             
 
     def set_msg(self, res_flag):
-        if self.running:
-            if(res_flag == 0):
-                self.msg = "You can't overtake."
-            elif(res_flag == 1):
-                self.msg = "You can overtake from right side."
-            elif(res_flag == -1):
-                self.msg = "You can overtake from left side."
-        else:
+        
+        if(res_flag == 0):
+            self.msg = "You can't overtake."
+        elif(res_flag == 1):
+            self.msg = "You can overtake from right side."
+        elif(res_flag == -1):
+            self.msg = "You can overtake from left side."
+        elif(res_flag == 2):
             self.msg = "You don't need to overtake."
 
     def find_nearest_idx(self, value):
@@ -180,15 +179,17 @@ class overtaking_system:
         left_x = self.left_lane[0,l_idx]
         right_x = self.right_lane[0, r_idx]
         
-        if(bb[0] < left_x): # bounding box on the left of lane.
+        if bb[0] <= left_x and bb[2] >= right_x:
+            flag = 0
+            ratio = 100.0
+        elif(bb[0] < left_x): # bounding box on the left of lane.
             flag = -1
             diff = float(bb[2]) - float(left_x)
             ratio = 0.0 if diff < 0 else diff / bbWid * 100
             # if(diff < 0): # no overlapping
                 # ratio = 0.0
             # else:
-                # ratio = diff/bbWid * 100.0
-        
+                # ratio = diff/bbWid * 100
         elif(bb[2] > right_x): # bounding box on the right of lane.
             flag = 1
             diff = float(right_x) - float(bb[0])
@@ -252,33 +253,44 @@ class overtaking_system:
 
     def detect_overtaking(self, bbs, lane_mask, frame=None):
         if not self.both_lane_flag:
-            self.running = True
             self.set_msg(0)
             return
 
         self.lane_mask = lane_mask
-        # overlap_ratio = 40.0 # TODO
-        obj_flag = False
-        # print(self.both_lane_flag)
+        self.obj_flag = False
+        res_flag = -2
+        self.cant_flag = False
+        self.dneed_flag = False
+
         for i in range(len(bbs)):
             (flag, ratio) = self.overlap(bbs[i])
             if ratio > self.overlap_rate:
-                obj_flag = True
-                break
+                bbwid = bbs[i][2] - bbs[i][0]
+                # get object width, now only have vehicle size.
+                # using object width to determin overtake or don't need.
+                if bbwid > 195:
+                    self.cant_flag = True
+                elif bbwid < 78:
+                    self.dneed_flag = True
+                elif bbwid >= 78 or bbwid <= 195: 
+                    self.obj_flag = True
 
-        if obj_flag:
+        if self.cant_flag:
+            self.res_flag = 0
+        elif self.dneed_flag:
+            self.res_flag == 2
+        elif self.obj_flag:
             self.detect_lane_available(frame)
-            self.running = True
             (l_flag, r_flag) = self.detect_result
             if l_flag and r_flag:
-                res_flag = -1
+                self.res_flag = -1
             elif l_flag:
-                res_flag = -1
+                self.res_flag = -1
             elif r_flag:
-                res_flag = 1
+                self.res_flag = 1
             else:
-                res_flag = 0
-        else:
-            self.running = False
-            res_flag = 0
-        self.set_msg(res_flag)
+                self.res_flag = 0
+        elif self.obj_flag == False:
+            self.res_flag = 2
+        # print(self.cant_flag, self.dneed_flag, self.obj_flag, res_flag)
+        self.set_msg(self.res_flag)
