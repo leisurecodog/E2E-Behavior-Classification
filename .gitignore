@@ -9,4 +9,5 @@ OT_module/yolact_edge_project/yolact_edge/torch2trt
 *.jpg
 *.png
 *.txt
-
+labels/
+labels_backup/
