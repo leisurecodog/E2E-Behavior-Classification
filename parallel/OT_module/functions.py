@@ -258,7 +258,7 @@ class overtaking_system:
 
         self.lane_mask = lane_mask
         self.obj_flag = False
-        res_flag = -2
+        self.res_flag = -2
         self.cant_flag = False
         self.dneed_flag = False
 
