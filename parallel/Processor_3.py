@@ -26,8 +26,10 @@ def run(*params):
             g_frame = frame # TODO
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
-            # dict_frame[frame_id] = frame
+            
+            # lock.acquire()
             dict_frame.update({frame_id:frame})
+            # lock.release()
             frame_id += 1
 
 

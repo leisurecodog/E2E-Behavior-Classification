@@ -22,18 +22,32 @@ def Manager():
     m.start()
     return m
 
-def writer(queue):
+def writer(d,lock):
     # print(queue)
     for i in range(100):
-        queue.put(i)
+        # queue.put(i)
+        # lock.acquire()
+        d[i] = i
+        # lock.release()
     # print "worker", queue.qsize()
-def reader(queue):
+def reader(d,lock):
     for i in range(100):
-        print(queue.get_top())
+        # print(queue.get_top())
+        # lock.acquire()
+        print(i in d)
+        # lock.release()
     
 m = Manager()
-q = m.MyQueue()  # This is process-safe
-wp = Process(target = writer, args = (q,))
-rp = Process(target = reader, args = (q,))
-wp.start()
+# q = m.MyQueue()  # This is process-safe
+ll = m.list()
+lock = m.Lock()
+ll.append(0)
+d = m.dict()
+wp = Process(target = writer, args = (d,lock,))
+rp = Process(target = reader, args = (d,lock,))
 rp.start()
+wp.start()
+
+wp.join()
+rp.join()
+print(ll[0])

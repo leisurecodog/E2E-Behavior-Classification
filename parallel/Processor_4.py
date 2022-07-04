@@ -62,14 +62,14 @@ def run(*params):
                             cv2.circle(fm, (int(v[0]), int(v[1])), 3, (255, 0, 0), -1)
         
 
-        # if entry_time != 0:
-        #     ts = time.time() - entry_time
-        #     FPS = 1 / ts
-        #     qt_set_fps(FPS)
-        #     total_fps += FPS
-        #     counter += 1
-        #     qt_set_fps(total_fps/counter)
-        # entry_time = time.time()
+        if entry_time != 0:
+            ts = time.time() - entry_time
+            FPS = 1 / ts
+            qt_set_fps(FPS)
+            total_fps += FPS
+            counter += 1
+            qt_set_fps(total_fps/counter)
+        entry_time = time.time()
         
         # lock.release()
                 

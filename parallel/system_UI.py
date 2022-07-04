@@ -38,9 +38,9 @@ class Ui_MainWindow(object):
         self.label_suggestion.setObjectName("label_suggest")
         self.label_suggestion.move(700, 370)
         self.label_suggestion.setFont(QFont('Arial', 16))
-        # self.label_fps = QtWidgets.QLabel(self.centralwidget)
-        # self.label_fps.setObjectName("label_fps")
-        # self.label_fps.move(820, 54)
+        self.label_fps = QtWidgets.QLabel(self.centralwidget)
+        self.label_fps.setObjectName("label_fps")
+        self.label_fps.move(820, 54)
 
         MainWindow.setCentralWidget(self.centralwidget)
         # barbarbar
@@ -75,8 +75,12 @@ class Ui_MainWindow(object):
         self.checkbox_TP.move(700, 200)
         self.checkbox_TP.setChecked(True)
         self.checkbox_TP.setFont(QFont('Arial', 14))
+        self.checkbox_BC = QCheckBox('active BC module', self.centralwidget)
+        self.checkbox_BC.move(700, 250)
+        self.checkbox_BC.setChecked(True)
+        self.checkbox_BC.setFont(QFont('Arial', 14))
         self.checkbox_OT = QCheckBox('active OT module', self.centralwidget)
-        self.checkbox_OT.move(700, 250)
+        self.checkbox_OT.move(700, 300)
         self.checkbox_OT.setChecked(True)
         self.checkbox_OT.setFont(QFont('Arial', 14))
         # button
@@ -126,7 +130,7 @@ class Ui_MainWindow(object):
         self.label_opened.setText(_translate("MainWindow", "./"))
         self.label_id.setText(_translate("MainWindow", "ID: "))
         self.label_suggestion.setText(_translate("MainWindow", "Suggestion: "))
-        # self.label_fps.setText(_translate("MainWindow", "FPS:"))
+        self.label_fps.setText(_translate("MainWindow", "FPS:"))
 
         self.btn_start.setText(_translate("MainWindow", "Start"))
         self.btn_stop.setText(_translate("MainWindow", "Stop"))
@@ -152,7 +156,9 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         
     def init_config(self):
         self.config['TP'] = self.ui.checkbox_TP.isChecked()
+        self.config['BC'] = self.ui.checkbox_BC.isChecked()
         self.config['OT'] = self.ui.checkbox_OT.isChecked()
+        
         self.config['Exit'] = False # threading.Event()
         self.config['MOT'] = self.ui.checkbox_MOT.isChecked() # threading.Event()
         self.config['HTP'] = self.ui.checkbox_TP1.isChecked()
@@ -209,6 +215,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
     def utilities_set_all(self, flag):
         # close three check box
         self.ui.checkbox_OT.setEnabled(flag)
+        self.ui.checkbox_BC.setEnabled(flag)
         self.ui.checkbox_TP.setEnabled(flag)
         self.ui.file_button.setEnabled(flag)
 
@@ -259,6 +266,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.ui.btn_track.clicked.connect(self.ID_select)
         self.ui.btn_track_clear.clicked.connect(self.clear_ID)
         self.ui.checkbox_TP.stateChanged.connect(self.active_TP)
+        self.ui.checkbox_BC.stateChanged.connect(self.active_BC)
         self.ui.checkbox_OT.stateChanged.connect(self.active_OT)
         self.ui.checkbox_MOT.stateChanged.connect(self.MOT_cb)
         self.ui.checkbox_TP1.stateChanged.connect(self.TP1_cb)
@@ -294,9 +302,14 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         
     def active_TP(self):
         self.config['TP'] = self.ui.checkbox_TP.isChecked()
-        
+
+    def active_BC(self):
+        self.config['BC'] = self.ui.checkbox_BC.isChecked()
+
     def active_OT(self):
         self.config['OT'] = self.ui.checkbox_OT.isChecked()
+    
+    
 
     def disp_config(self, flag=None):
         disp_state = self.ui.checkbox_disp.isChecked()

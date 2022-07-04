@@ -24,7 +24,7 @@ class MOT:
         # self.format = 'bbox'
 
 
-    def run(self, frame, dict_objdet):
+    def run(self, frame, dict_objdet, lock):
         from MOT_module import yolo_detect
         st = time.time()
         img_info = {}

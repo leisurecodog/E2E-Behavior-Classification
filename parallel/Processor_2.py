@@ -12,8 +12,10 @@ def run(*params):
             frame = dict_frame[frame_id]
             t1 = time.time()
             module_OT.run(frame, dict_objdet[frame_id])
+            # lock.acquire()
             dict_OT.update({frame_id:module_OT.OTS.msg})
-            # print("OT done \t {}".format(frame_id))
+            # lock.release()
+            print("OT done \t {}".format(frame_id))
             t2 = time.time() - t1
 
             frame_id += 1
