@@ -3,6 +3,7 @@ import numpy as np
 import os
 import cv2
 from OT_module.OT import OT
+from sklearn.metrics import classification_report, confusion_matrix
 
 dict_msg = {"You can't overtake.":0, "You can overtake from left side.": 1,\
      "You don't need to overtake.":2, "You can overtake from right side.":3}
@@ -25,6 +26,7 @@ def test_OT(label_path):
         # get label and put in dict
         with open(file_path, 'r') as f:
             tmp = f.readlines()
+            # print(tmp)
         for line in tmp:
             l_list = line.split(',')
             label = l_list[1].replace('\n','')
@@ -46,9 +48,9 @@ def test_OT(label_path):
                 dict_frame[nums] = img
         dict_videos[file.replace('.txt', '')] = dict_frame
 
-    o_rate_iter = np.arange(0, 100, 10)
-    var_iter = np.arange(0, 1, 0.1)
-    
+    o_rate_iter = np.arange(100, 0, -10)
+    var_iter = np.arange(1, 0, -0.1)
+    debug_flag = False
     for r1 in o_rate_iter:
         for r2 in var_iter:
             module_OT.OTS.overlap_rate = r1
@@ -56,11 +58,23 @@ def test_OT(label_path):
             # print("OTS.overlap_rate, OTS.variant:  ", OTS.overlap_rate, OTS.variant)
             avg_acc = 0
             avg_acc_ano = 0
+            avg_acc_have_lane = 0
+            total_pred = []
+            total_gt = []
+            total_hl_pred = []
+            total_hl_gt = []
+            target_names = ['cannot overtake', 'overtake from left',\
+                 'don\'t need to overtake', 'overtake from right']
             for k, dict_label in dict_labels.items():
+                # print(dict_label)
                 # print(k)
+                pred = []
+                pred_same = []
+                pred_have_laneline = []
+                hl_pred = []
+                hl_gt = []
+                gt = []
                 dict_frame = dict_videos[k]
-                acc_time = 0
-                acc_time_another = 0
                 frame_id = 5
                 while frame_id in dict_label:
                     fm = dict_frame[frame_id]
@@ -69,40 +83,65 @@ def test_OT(label_path):
                         frame_id += offset
                         continue
                     outputs = outputs.cpu().detach().numpy()
-                    fm = module_OT.run(fm, outputs, test=False)
+                    
+                    fm = module_OT.run(fm, outputs, test=debug_flag)
+                    
                     msg = module_OT.OTS.msg
-                    # for b in outputs:
-                    #     nb = [int(d) for d in b[:4]]
-                    #     cv2.rectangle(fm, (nb[0], nb[1]), (int(nb[2]), int(nb[3])), (255,255,255), 2)
-                    #     cv2.putText(fm, str(nb[2]-nb[0]), (nb[0], nb[3]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-                    # cv2.putText(fm, str(dict_label[frame_id]), (0, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-                    # cv2.putText(fm, msg, (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-                    # cv2.imshow('t', fm)
-                    # cv2.waitKey(0)
+                    if debug_flag:
+                        for b in outputs:
+                            nb = [int(d) for d in b[:4]]
+                            cv2.rectangle(fm, (nb[0], nb[1]), (int(nb[2]), int(nb[3])), (255,255,255), 2)
+                            cv2.putText(fm, str(nb[2]-nb[0]), (nb[0], nb[3]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                        cv2.putText(fm, str(dict_label[frame_id]), (0, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                        cv2.putText(fm, msg, (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+                        cv2.imshow('t', fm)
+                        cv2.waitKey(0)
                     # print(dict_msg[msg], dict_label[frame_id])
-                    acc_time += 1 if dict_msg[msg] == dict_label[frame_id] else 0
+                    # acc_time += 1 if dict_msg[msg] == dict_label[frame_id] else 0
+                    pred.append(dict_msg[msg])
+                    gt.append(dict_label[frame_id])
                     # make can't overtake as same as don't need to overtake.
                     pred_label = dict_msg[msg]
                     gt_label = dict_label[frame_id]
-                    if pred_label == 2:
-                        pred_label = 0
-                    if gt_label == 2:
-                        gt_label = 0
-                    acc_time_another += 1 if pred_label == gt_label else 0
+                    if module_OT.OTS.both_lane_flag:
+                        pred_have_laneline.append(pred_label == gt_label)
+                        hl_pred.append(pred_label)
+                        hl_gt.append(gt_label)
+                    if (pred_label == 0 or pred_label == 2) and (gt_label == 0 or gt_label == 2):
+                        pred_same.append(gt_label)
+                    else:
+                        pred_same.append(pred_label)
+                    # if pred_label == 2:
+                    #     pred_label = 0
+                    # if gt_label == 2:
+                    #     gt_label = 0
+
                     frame_id += offset
-                acc = acc_time / len(dict_label)
-                avg_acc += acc
-                ano_acc = acc_time_another / len(dict_label)
-                avg_acc_ano += ano_acc
-            avg_acc = avg_acc / len(dict_labels)
-            avg_acc_ano = avg_acc_ano / len(dict_labels)
-            disp_str = "Overlap_ratio: {} \t var: {} \t acc: {} \t make_same_acc: {}"\
-                .format(round(r1, 4), round(r2, 4), round(avg_acc, 4), round(avg_acc_ano, 4))
+                
+                correct1 = np.array(pred) == np.array(gt)
+                correct2 = np.array(pred_same) == np.array(gt)
+                avg_acc += correct1.sum() / len(correct1)
+                avg_acc_ano += correct2.sum() / len(correct2)
+                avg_acc_have_lane += np.array(pred_have_laneline).sum() / len(pred_have_laneline)
+                total_hl_pred.extend(hl_pred)
+                total_hl_gt.extend(hl_gt)
+                total_pred.extend(pred)
+                total_gt.extend(gt)
+            # print(classification_report(total_gt, total_pred, target_names=target_names))
+            print(confusion_matrix(total_gt, total_pred))
+            print(confusion_matrix(total_hl_gt, total_hl_pred))
+
+            avg_acc /= len(dict_labels)
+            avg_acc_ano /= len(dict_labels)
+            avg_acc_have_lane /= len(dict_labels)
+            disp_str = "Overlap_ratio: {} \t var: {} \t acc: {} \t make_same_acc: {} \t have lane: {}"\
+                .format(round(r1, 4), round(r2, 4), round(avg_acc, 4),\
+                     round(avg_acc_ano, 4), round(avg_acc_have_lane, 4))
             print(disp_str)
             
 
 if __name__ == '__main__':
     
-    # path = '../../OT_label_Depth/labels'
-    path = 'labels_backup'
+    path = '../../OT_label_Depth/labels'
+    # path = 'labels_backup'
     test_OT(path)

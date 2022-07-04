@@ -5,7 +5,7 @@ import cv2
 import sys
 
 def run(*params):
-    frame_dict, objdet_dict, Future_traj_dict, BC_dict, MOT_dict, config_dict = params
+    frame_dict, objdet_dict, Future_traj_dict, BC_dict, MOT_dict, config_dict, lock = params
 
     from MOT_module.MOT import MOT
     from TP_module.TP import TP

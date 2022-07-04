@@ -67,9 +67,6 @@ class OT:
                 for i in range(len(self.OTS.right_lane[0])):
                     cv2.circle(frame, (int(self.OTS.right_lane[0][i]), int(self.OTS.right_lane[1][i])), 3, (0, 0, 255), -1)
                 frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
-                if self.OTS.both_lane_flag:
-                    cv2.putText(frame, "{} {} {} {}".format(self.OTS.cant_flag, self.OTS.dneed_flag, self.OTS.obj_flag, self.OTS.res_flag)\
-                        , (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)            
             # self.counter += 1
             # self.exe_time += (time.time() - st)
         else:

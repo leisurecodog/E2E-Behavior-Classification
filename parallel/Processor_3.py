@@ -1,7 +1,7 @@
 import cv2
 import system_parser
-def run(video_path, dict_frame):
-    
+def run(*params):
+    video_path, dict_frame, lock = params
     '''
     function of Input_reader:
         Description:

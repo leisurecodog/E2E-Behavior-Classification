@@ -6,7 +6,7 @@ import sys
 
 def run(*params):
     dict_frame, dict_MOT, dict_future, dict_BC,\
-     dict_OT, dict_config, qt_set_img, qt_set_fps = params
+     dict_OT, lock, dict_config, qt_set_img, qt_set_fps = params
 
     frame_id = 0
     entry_time = 0

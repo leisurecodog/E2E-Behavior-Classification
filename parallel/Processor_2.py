@@ -1,4 +1,5 @@
-def run(dict_frame, dict_objdet, dict_OT):
+def run(*params):
+    dict_frame, dict_objdet, dict_OT, lock = params
     from OT_module.OT import OT
     import time
     module_OT = OT()

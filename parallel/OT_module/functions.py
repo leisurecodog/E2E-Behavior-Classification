@@ -264,21 +264,23 @@ class overtaking_system:
 
         for i in range(len(bbs)):
             (flag, ratio) = self.overlap(bbs[i])
-            if ratio > self.overlap_rate:
+            
+            if ratio >= self.overlap_rate:
                 bbwid = bbs[i][2] - bbs[i][0]
                 # get object width, now only have vehicle size.
-                # using object width to determin overtake or don't need.
+                # using object width to determine overtake or don't need.
                 if bbwid > 195:
                     self.cant_flag = True
                 elif bbwid < 78:
                     self.dneed_flag = True
-                elif bbwid >= 78 or bbwid <= 195: 
+                elif bbwid >= 78 and bbwid <= 195: 
                     self.obj_flag = True
-
+        # print(self.cant_flag, self.dneed_flag, self.obj_flag)
         if self.cant_flag:
             self.res_flag = 0
         elif self.dneed_flag:
-            self.res_flag == 2
+            self.res_flag = 2
+            # print(self.res_flag)
         elif self.obj_flag:
             self.detect_lane_available(frame)
             (l_flag, r_flag) = self.detect_result
@@ -290,7 +292,7 @@ class overtaking_system:
                 self.res_flag = 1
             else:
                 self.res_flag = 0
-        elif self.obj_flag == False:
+        else:
             self.res_flag = 2
-        # print(self.cant_flag, self.dneed_flag, self.obj_flag, res_flag)
         self.set_msg(self.res_flag)
+        

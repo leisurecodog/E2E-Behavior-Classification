@@ -30,13 +30,17 @@ class Ui_MainWindow(object):
         self.label_id.setObjectName("ID selector")
         self.label_id.move(700, 155)
         self.label_id.setFont(QFont('Arial', 14))
-        # self.label_fps = QtWidgets.QLabel(self.centralwidget)
-        # self.label_fps.setObjectName("label_fps")
-        # self.label_fps.move(820, 54)
         self.label_opened = QtWidgets.QLabel(self.centralwidget)
         self.label_opened.setObjectName("label_opened_file")
         self.label_opened.move(820, 435)
         self.label_opened.setFont(QFont('Arial', 14))
+        self.label_suggestion = QtWidgets.QLabel(self.centralwidget)
+        self.label_suggestion.setObjectName("label_suggest")
+        self.label_suggestion.move(700, 370)
+        self.label_suggestion.setFont(QFont('Arial', 16))
+        # self.label_fps = QtWidgets.QLabel(self.centralwidget)
+        # self.label_fps.setObjectName("label_fps")
+        # self.label_fps.move(820, 54)
 
         MainWindow.setCentralWidget(self.centralwidget)
         # barbarbar
@@ -120,7 +124,10 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label_vid.setText(_translate("MainWindow", "TextLabel"))
         self.label_opened.setText(_translate("MainWindow", "./"))
+        self.label_id.setText(_translate("MainWindow", "ID: "))
+        self.label_suggestion.setText(_translate("MainWindow", "Suggestion: "))
         # self.label_fps.setText(_translate("MainWindow", "FPS:"))
+
         self.btn_start.setText(_translate("MainWindow", "Start"))
         self.btn_stop.setText(_translate("MainWindow", "Stop"))
         self.file_button.setText(_translate("MainWindow", "Open File"))
@@ -128,7 +135,7 @@ class Ui_MainWindow(object):
         self.btn_quit.setText(_translate("MainWindow", "Quit"))
         self.btn_track.setText(_translate("MainWindow", "Track"))
         self.btn_track_clear.setText(_translate("MainWindow", "Clear"))
-        self.label_id.setText(_translate("MainWindow", "ID: "))
+        
 # ==========================================================================================
 class MainWindow_controller(QtWidgets.QMainWindow):
     def __init__(self):
@@ -162,7 +169,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.dict_traj_future = self.manager.dict()
         self.dict_BC = self.manager.dict()
         self.dict_OT = self.manager.dict()
-        
+        self.lock = self.manager.Lock()
         
         # share memory config =========================================
     def init_processes(self):
@@ -174,18 +181,18 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # create subprocess
         self.p_list = [[]] * 3
         self.p_list[0] = torch_mp.Process(target=OT_run, 
-        args=(self.dict_frame, self.dict_objdet, self.dict_OT,))
+        args=(self.dict_frame, self.dict_objdet, self.dict_OT,self.lock,))
 
         self.p_list[1] = torch_mp.Process(target=P1_run,
         args=(self.dict_frame, self.dict_objdet,\
-             self.dict_traj_future, self.dict_BC, self.dict_MOT, self.config,))
+             self.dict_traj_future, self.dict_BC, self.dict_MOT, self.config, self.lock,))
         
         self.p_list[2] = torch_mp.Process(target=Input_reader,\
-             args=(self.config['video_path'], self.dict_frame,))
+             args=(self.config['video_path'], self.dict_frame, self.lock,))
         
         self.t1 = threading.Thread(target=Output_reader, 
         args=(self.dict_frame, self.dict_MOT, self.dict_traj_future,\
-             self.dict_BC, self.dict_OT, self.config, self.set_img, self.set_fps,))
+             self.dict_BC, self.dict_OT, self.lock, self.config, self.set_img, self.set_fps,))
         # start each subprocess
     def set_fps(self, fps):
         self.ui.label_fps.setText("FPS: {}".format(fps))
