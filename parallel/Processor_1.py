@@ -16,7 +16,7 @@ def run(*params):
     frame_id = 0
     
     execute_freq = 1
-    show_msg_flag = True
+    show_msg_flag = False
     entry_time = 0
     total_fps = 0
     counter = 0
@@ -31,9 +31,9 @@ def run(*params):
             if show_msg_flag:
                 # print("MOT done ", time.time() - t1, frame_id)
                 print("MOT done \t {}".format(frame_id))
-            # lock.acquire()    
+            lock.acquire()    
             MOT_dict.update({frame_id:module_MOT.current_MOT})
-            # lock.release()
+            lock.release()
             data = module_MOT.current_MOT.copy()
             # ======================== Update current trajectory Buffer ======================
             # current_traj_id_dict.clear()
@@ -50,9 +50,9 @@ def run(*params):
                 if show_msg_flag:
                     # print("TP done ", time.time() - t1, frame_id)
                     print("TP done \t {}".format(frame_id))
-                # lock.acquire()
+                lock.acquire()
                 Future_traj_dict.update({frame_id:module_TP.result})
-                # lock.release()
+                lock.release()
             # ======================== BC Working ======================
             if config_dict['BC'] and module_BC.is_satisfacation(module_TP.current_frame_ID_counter):
                 t1 = time.time()

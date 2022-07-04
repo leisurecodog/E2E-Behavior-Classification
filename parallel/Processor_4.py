@@ -15,6 +15,7 @@ def run(*params):
     bbox = []
     current_id = []
     history_traj = {}
+    colors = [(255, 255, 255), (0, 0, 255)]
     FPS = 0
     while True:
         # print("Frame id {}".format(frame_id), event.is_set())
@@ -27,12 +28,13 @@ def run(*params):
             continue
         while frame_id not in dict_BC:
             continue
-        
+        bcr = dict_BC[frame_id]
         fm = dict_frame[frame_id]
         mot_exist_flag = dict_MOT[frame_id] is not None
         # if dict_config['MOT'].is_set():
         if mot_exist_flag:
             bbox = dict_MOT[frame_id]
+            limit = 5
             for ID, current in bbox.items():
                 if ID not in history_traj:
                     history_traj[ID] = []
@@ -40,7 +42,14 @@ def run(*params):
                 x2, y2 = x1 + offset_x , y1 + offset_y
                 if dict_config['MOT']:
                     if dict_config['ID'] == 0 or dict_config['ID'] == ID:
-                        cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), (255,255,255), 2)
+                        color = colors[0]
+                        if bcr is not None and ID in bcr  and limit > 0:
+                            res = bcr[ID]
+                            if res == -1:
+                                color = colors[1]
+                                limit -= 1
+                                
+                        cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
                         cv2.putText(fm, str(ID), (int(x1), int(y1)), cv2.FONT_HERSHEY_PLAIN,\
                                 3, (255, 255, 0), thickness=2)
                 # record mot date each timestamp.
@@ -70,19 +79,8 @@ def run(*params):
             counter += 1
             qt_set_fps(total_fps/counter)
         entry_time = time.time()
-        
-        # lock.release()
-                
-        # if BC_result_flag and id in self.BC.result.keys():
-        #     bcr = self.BC.result[id]
-        #     if bcr == -1:
-        #         draw_color_idx = 1
-        # cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), self.BC.bbox_color[draw_color_idx], 2)
-        # draw trajs
-        # print(frame_id, dict_traj_current)
-        
-        # cv2.putText(fm, "average FPS: {}".format(FPS), (0, 30), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255), thickness=3)
+
         qt_set_img(fm)
-        # print(frame_id)
+        
         frame_id += 1
     

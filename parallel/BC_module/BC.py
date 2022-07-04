@@ -11,7 +11,7 @@ class BC:
         from sklearn.svm import OneClassSVM
         import joblib
         self.BC_args = add_parser()
-        BC_model_path = './BC_module/weights/osvm.pkl'
+        BC_model_path = './BC_module/weights/osvm_best.pkl'
         self.classifier = joblib.load(BC_model_path)
         self.traj_len_required = traj_len_required
         self.mapping_list = None
