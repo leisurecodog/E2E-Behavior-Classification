@@ -6,7 +6,7 @@ import sys
 
 def run(*params):
     dict_frame, dict_MOT, dict_future, dict_BC,\
-     dict_OT, lock, dict_config, qt_set_img, qt_set_fps = params
+     dict_OT, lock, dict_config, signal, qt_set_img, qt_set_fps = params
 
     frame_id = 0
     entry_time = 0
@@ -19,7 +19,7 @@ def run(*params):
     FPS = 0
     while True:
         # print("Frame id {}".format(frame_id), event.is_set())
-        if dict_config['Exit']:
+        if dict_config['Exit'] or signal.value == frame_id:
             print("EXIT")
             return
         # output: show video if all data is in share dictionary.

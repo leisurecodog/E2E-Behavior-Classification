@@ -89,14 +89,14 @@ class overtaking_system:
             self.center = [x,y]
         self.overtake_path = []
         self.msg = ""
-        self.variant = 0.4 # TODO
-        self.overlap_rate = 40.0
+        self.variant = 0.7 # TODO
+        self.overlap_rate = 10.0
         self.detect_result = (False, False)
         self.both_lane_flag = False
+        self.res_flag_nowidth = -2
 
     def set_center(self, pt):
         self.center = pt
-
     
 
     def update_lane(self):
@@ -259,11 +259,12 @@ class overtaking_system:
         self.lane_mask = lane_mask
         self.obj_flag = False
         self.res_flag = -2
+        self.res_flag_nowidth = -2
         self.cant_flag = False
         self.dneed_flag = False
 
         for i in range(len(bbs)):
-            (flag, ratio) = self.overlap(bbs[i])
+            (_, ratio) = self.overlap(bbs[i])
             
             if ratio >= self.overlap_rate:
                 bbwid = bbs[i][2] - bbs[i][0]
@@ -295,4 +296,25 @@ class overtaking_system:
         else:
             self.res_flag = 2
         self.set_msg(self.res_flag)
+
+        # detect without bounding box width
+        self.obj_flag = False
+        for i in range(len(bbs)):
+            (_, ratio) = self.overlap(bbs[i])
+            if ratio >= self.overlap_rate:
+                    self.obj_flag = True
+        
+        if self.obj_flag:
+            self.detect_lane_available(frame)
+            (l_flag, r_flag) = self.detect_result
+            if l_flag and r_flag:
+                self.res_flag_nowidth = -1
+            elif l_flag:
+                self.res_flag_nowidth = -1
+            elif r_flag:
+                self.res_flag_nowidth = 1
+            else:
+                self.res_flag_nowidth = 0
+        else:
+            self.res_flag_nowidth = 2
         

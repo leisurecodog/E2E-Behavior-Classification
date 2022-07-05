@@ -72,6 +72,7 @@ class TP:
         return True in [val > self.traj_len_required for val in self.current_frame_ID_counter.values()]
 
     def run(self):
+        t1 = time.time()
         total_trajs_id = []
         self.ids = []
         self.result = {}
@@ -86,7 +87,8 @@ class TP:
             self.result = {self.ids[i]:self.future[i].tolist() for i in range(len(self.ids))}
             # for i in range(len(self.ids)):
             #     self.result[self.ids[i]] = self.future[i].tolist()
-       
+        # self.exe_time += time.time() - t1
+        # self.counter += 1
 
     def traj_reset(self):
         # self.traj = []

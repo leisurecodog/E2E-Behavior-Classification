@@ -176,6 +176,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.dict_BC = self.manager.dict()
         self.dict_OT = self.manager.dict()
         self.lock = self.manager.Lock()
+        self.end_signal = torch_mp.Value('d', -1)
         
         # share memory config =========================================
     def init_processes(self):
@@ -187,18 +188,18 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         # create subprocess
         self.p_list = [[]] * 3
         self.p_list[0] = torch_mp.Process(target=OT_run, 
-        args=(self.dict_frame, self.dict_objdet, self.dict_OT,self.lock,))
+        args=(self.dict_frame, self.dict_objdet, self.dict_OT,self.lock, self.end_signal,))
 
         self.p_list[1] = torch_mp.Process(target=P1_run,
         args=(self.dict_frame, self.dict_objdet,\
-             self.dict_traj_future, self.dict_BC, self.dict_MOT, self.config, self.lock,))
+             self.dict_traj_future, self.dict_BC, self.dict_MOT, self.config, self.lock, self.end_signal,))
         
         self.p_list[2] = torch_mp.Process(target=Input_reader,\
-             args=(self.config['video_path'], self.dict_frame, self.lock,))
+             args=(self.config['video_path'], self.dict_frame, self.lock, self.end_signal,))
         
         self.t1 = threading.Thread(target=Output_reader, 
         args=(self.dict_frame, self.dict_MOT, self.dict_traj_future,\
-             self.dict_BC, self.dict_OT, self.lock, self.config, self.set_img, self.set_fps,))
+             self.dict_BC, self.dict_OT, self.lock, self.config, self.end_signal, self.set_img, self.set_fps,))
         # start each subprocess
     def set_fps(self, fps):
         self.ui.label_fps.setText("FPS: {}".format(fps))

@@ -1,7 +1,7 @@
 import cv2
 import system_parser
 def run(*params):
-    video_path, dict_frame, lock = params
+    video_path, dict_frame, lock, signal = params
     '''
     function of Input_reader:
         Description:
@@ -31,5 +31,9 @@ def run(*params):
             dict_frame.update({frame_id:frame})
             # lock.release()
             frame_id += 1
+        else:
+            signal.value = frame_id
+            print("SET")
+            break
 
 

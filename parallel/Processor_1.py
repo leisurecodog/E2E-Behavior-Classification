@@ -5,7 +5,7 @@ import cv2
 import sys
 
 def run(*params):
-    frame_dict, objdet_dict, Future_traj_dict, BC_dict, MOT_dict, config_dict, lock = params
+    frame_dict, objdet_dict, Future_traj_dict, BC_dict, MOT_dict, config_dict, lock, signal = params
 
     from MOT_module.MOT import MOT
     from TP_module.TP import TP
@@ -39,8 +39,6 @@ def run(*params):
             # current_traj_id_dict.clear()
             # current_traj_id_dict.update(module_TP.traj_id_dict)
             # print("TP module:", config_dict['TP'])
-            
-            
             module_TP.update_traj(data)
             
             # ======================== TP Working ======================
@@ -64,3 +62,7 @@ def run(*params):
             BC_dict.update({frame_id:module_BC.result})
             # lock.release()
             frame_id += 1
+            # if frame_id == 1754:
+            #     print("TP module average time:", module_TP.exe_time / module_TP.counter)
+        elif frame_id == signal.value:
+            break

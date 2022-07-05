@@ -1,5 +1,5 @@
 def run(*params):
-    dict_frame, dict_objdet, dict_OT, lock = params
+    dict_frame, dict_objdet, dict_OT, lock, signal = params
     from OT_module.OT import OT
     import time
     module_OT = OT()
@@ -17,5 +17,6 @@ def run(*params):
             # lock.release()
             print("OT done \t {}".format(frame_id))
             t2 = time.time() - t1
-
             frame_id += 1
+        elif signal.value == frame_id:
+            break
