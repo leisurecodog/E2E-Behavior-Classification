@@ -87,8 +87,8 @@ class TP:
             self.result = {self.ids[i]:self.future[i].tolist() for i in range(len(self.ids))}
             # for i in range(len(self.ids)):
             #     self.result[self.ids[i]] = self.future[i].tolist()
-        # self.exe_time += time.time() - t1
-        # self.counter += 1
+        self.exe_time += time.time() - t1
+        self.counter += 1
 
     def traj_reset(self):
         # self.traj = []

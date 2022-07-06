@@ -15,8 +15,9 @@ def run(*params):
             # lock.acquire()
             dict_OT.update({frame_id:module_OT.OTS.msg})
             # lock.release()
-            print("OT done \t {}".format(frame_id))
+            # print("OT done \t {}".format(frame_id))
             t2 = time.time() - t1
             frame_id += 1
-        elif signal.value == frame_id:
-            break
+            # if signal.value == frame_id:
+            #     print("ot module average time:", module_OT.exe_time / module_OT.counter)
+            #     return 

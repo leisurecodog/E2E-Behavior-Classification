@@ -176,7 +176,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         self.dict_BC = self.manager.dict()
         self.dict_OT = self.manager.dict()
         self.lock = self.manager.Lock()
-        self.end_signal = torch_mp.Value('d', -1)
+        self.end_signal = self.manager.Value('d', -1)
         
         # share memory config =========================================
     def init_processes(self):
@@ -199,7 +199,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         
         self.t1 = threading.Thread(target=Output_reader, 
         args=(self.dict_frame, self.dict_MOT, self.dict_traj_future,\
-             self.dict_BC, self.dict_OT, self.lock, self.config, self.end_signal, self.set_img, self.set_fps,))
+             self.dict_BC, self.dict_OT, self.lock, self.config, self.end_signal, self.set_img, self.set_fps, self.stop_func))
         # start each subprocess
     def set_fps(self, fps):
         self.ui.label_fps.setText("FPS: {}".format(fps))
@@ -228,8 +228,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
             self.ui.label_opened.setStyleSheet('color:red')
             self.ui.label_opened.setText("Please Select a File.")
             self.ui.label_opened.adjustSize()
-            return 
-
+            return
         self.init_config()
         self.utilities_set_all(False)
         self.init_mem()
@@ -282,7 +281,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
             self.ui.label_opened.setText(filename.split('/')[-1])
             self.ui.label_opened.setStyleSheet('color:black')
             self.ui.label_opened.adjustSize()
-        print(filename, filetype)
+        # print(filename, filetype)
     
     def MOT_cb(self):
         self.config['MOT'] = self.ui.checkbox_MOT.isChecked()

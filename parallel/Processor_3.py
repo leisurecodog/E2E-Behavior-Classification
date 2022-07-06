@@ -31,9 +31,9 @@ def run(*params):
             dict_frame.update({frame_id:frame})
             # lock.release()
             frame_id += 1
-        else:
-            signal.value = frame_id
-            print("SET")
-            break
-
-
+        # else:
+        #     lock.acquire()
+        #     signal.value = frame_id
+        #     lock.release()
+        #     print("VIDEO END.")
+        #     break

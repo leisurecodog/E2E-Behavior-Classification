@@ -25,7 +25,7 @@ def run(*params):
     while True:
         if frame_id in frame_dict:
             frame = frame_dict[module_MOT.frame_id]
-            # print(frame.shape)
+            
             t1 = time.time()
             module_MOT.run(frame, objdet_dict, lock)
             if show_msg_flag:
@@ -38,7 +38,6 @@ def run(*params):
             # ======================== Update current trajectory Buffer ======================
             # current_traj_id_dict.clear()
             # current_traj_id_dict.update(module_TP.traj_id_dict)
-            # print("TP module:", config_dict['TP'])
             module_TP.update_traj(data)
             
             # ======================== TP Working ======================
@@ -62,7 +61,9 @@ def run(*params):
             BC_dict.update({frame_id:module_BC.result})
             # lock.release()
             frame_id += 1
-            # if frame_id == 1754:
+            # if signal.value == frame_id:
+            #     print("mot module average time:", module_MOT.exe_time / module_MOT.counter)
             #     print("TP module average time:", module_TP.exe_time / module_TP.counter)
-        elif frame_id == signal.value:
-            break
+            #     print("bc module average time:", module_BC.exe_time / module_BC.counter)
+            #     return
+    

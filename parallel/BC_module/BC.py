@@ -8,7 +8,7 @@ class BC:
         msg = "Initializing BC Module..."
         prGreen(msg)
         from BC_module.parser import add_parser
-        from sklearn.svm import OneClassSVM
+        # from sklearn.svm import OneClassSVM
         import joblib
         self.BC_args = add_parser()
         BC_model_path = './BC_module/weights/osvm_best.pkl'
@@ -19,7 +19,6 @@ class BC:
         self.BC_required_len = 10
         self.counter = 0
         self.exe_time = 0
-        # self.bbox_color = [(255, 255, 255), (0, 0, 255)]
 
     def is_satisfacation(self, id_counter):
         if len(id_counter) < self.BC_args.id_num or max(id_counter.values()) < self.BC_required_len:
@@ -28,7 +27,6 @@ class BC:
         return True
 
     def preprocess(self, current, future):
-        # print(future)
         # final shape we should get:
         # video_list shape: [number of video, number of frame, number of IDs]
         # label_list shape: [number of video, 1, number of id]
@@ -61,28 +59,28 @@ class BC:
         # hint_str = "Behavior Classification without future Trajectory."
         from BC_module.gRQI_main import computeA, extractLi
         from BC_module.gRQI_custom import RQI
+        st1 = time.time()
         # hint_str = "predict BC using future trajs"
         # if futures is empty list that mean don't predict future trajectory
         ID_counter_sorted = dict(sorted(self.id_counter.items(), key=lambda item: item[1], reverse=True))
         self.top_k_ID = [k for idx, k in enumerate(ID_counter_sorted) if idx < self.BC_args.id_num]
         trajs, labels = self.preprocess(current_traj, future_traj)
-        st1 = time.time()
+        
         adj = computeA(trajs, labels, self.BC_args.neighber, self.BC_args.dataset, True)
-        st2 = time.time()
+        
         Laplacian_Matrices = extractLi(adj)
-        st3 = time.time()
+        
         U_Matrices = RQI(Laplacian_Matrices)
-        st4 = time.time()
+        
         new_Matrices = np.reshape(U_Matrices, (-1, self.BC_args.id_num)) 
         res = self.classifier.predict(new_Matrices)
         # In One Class SVM classification result,
         # -1 mean outlier, 1 mean inlier => -1 mean aggressive, 1 mean conservative
         # create dict for {id:bc_result}
+        
         self.result = {}
         for k, v in self.mapping_list.items():
             self.result[v] = res[k]
         
-        # print("BC time: ", st2-st, time.time()-st2)
-        # print("??????", st2-st1, st3-st2, st4-st3)
         self.counter += 1
         self.exe_time += (time.time() - st1)
