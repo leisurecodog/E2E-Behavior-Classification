@@ -51,7 +51,7 @@ def test_OT(label_path):
 
     o_rate_iter = np.arange(100, 0, -10)
     var_iter = np.arange(1, 0, -0.1)
-    debug_flag = False
+    debug_flag = True
     gt_total_label = {0:0, 1:0, 2:0, 3:0}
     pred_total_label = {0:0, 1:0, 2:0, 3:0}
     for r1 in o_rate_iter:
@@ -97,7 +97,9 @@ def test_OT(label_path):
                         cv2.putText(fm, gt_msg, (0, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
                         cv2.putText(fm, msg, (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
                         cv2.imshow('t', fm)
+                        cv2.imwrite('./tt.png', fm)
                         cv2.waitKey(0)
+
                     # print(dict_msg[msg], dict_label[frame_id])
                     # acc_time += 1 if dict_msg[msg] == dict_label[frame_id] else 0
                     pred.append(dict_msg[msg])

@@ -9,9 +9,12 @@ def run(*params):
     counter = 0
     while True:
         if frame_id in dict_objdet:
+            bbox = dict_objdet[frame_id]
             frame = dict_frame[frame_id]
+            if bbox is None:
+                continue
             t1 = time.time()
-            module_OT.run(frame, dict_objdet[frame_id])
+            module_OT.run(frame, bbox)
             # lock.acquire()
             dict_OT.update({frame_id:module_OT.OTS.msg})
             # lock.release()

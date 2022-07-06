@@ -34,7 +34,10 @@ def run(*params):
             lock.acquire()    
             MOT_dict.update({frame_id:module_MOT.current_MOT})
             lock.release()
-            data = module_MOT.current_MOT.copy()
+            
+            data = module_MOT.current_MOT.copy() if module_MOT.current_MOT is not None else None
+            if data is None:
+                continue            
             # ======================== Update current trajectory Buffer ======================
             # current_traj_id_dict.clear()
             # current_traj_id_dict.update(module_TP.traj_id_dict)

@@ -45,7 +45,7 @@ class OT:
         # x_coord, y_coord = [], []
         x_coord, y_coord = self.lane_predict(self.lane_agent, frame)
         
-        if len(x_coord) > 0 and len(y_coord) > 0:
+        if len(x_coord) > 0 and len(y_coord) > 0:    
             self.OTS.set_lane([x_coord, y_coord], center_x)
         
         # execute ot detect when both lane is detected.

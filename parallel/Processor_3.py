@@ -14,6 +14,7 @@ def run(*params):
     '''
     sys_args = sys_args = system_parser.get_parser()
     # cap = cv2.VideoCapture(sys_args.video_path)
+    print(video_path)
     cap = cv2.VideoCapture(video_path)
     frame_id = 0
     while True:

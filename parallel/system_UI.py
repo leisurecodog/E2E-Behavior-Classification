@@ -41,6 +41,7 @@ class Ui_MainWindow(object):
         self.label_fps = QtWidgets.QLabel(self.centralwidget)
         self.label_fps.setObjectName("label_fps")
         self.label_fps.move(820, 54)
+        self.label_fps.setFont(QFont('Arial', 14))
 
         MainWindow.setCentralWidget(self.centralwidget)
         # barbarbar
@@ -202,7 +203,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
              self.dict_BC, self.dict_OT, self.lock, self.config, self.end_signal, self.set_img, self.set_fps, self.stop_func))
         # start each subprocess
     def set_fps(self, fps):
-        self.ui.label_fps.setText("FPS: {}".format(fps))
+        self.ui.label_fps.setText("FPS: {}".format(round(fps, 4)))
         self.ui.label_fps.adjustSize()
 
     def set_img(self, fm):
@@ -246,7 +247,7 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         try:
             self.config['Exit'] = True
             self.t1.join()
-            # open all checkbox
+            # modify all checkboxes
             self.utilities_set_all(True)
             # don't open OT module
             for i in range(len(self.p_list)):

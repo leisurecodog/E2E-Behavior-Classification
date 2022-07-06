@@ -17,9 +17,9 @@ def run(*params):
     colors = [(255, 255, 255), (0, 0, 255)]
     bc_happen_counter = 0
     bc_happen_limit = 10
-    bc_recroder = {}
-    dict_color = {}
+    bcr = None
     FPS = 0
+
     while True:
         # or frame_id == signal.value
         if dict_config['Exit'] :
@@ -32,19 +32,14 @@ def run(*params):
         while frame_id not in dict_BC:
             continue
 
-        bcr = dict_BC[frame_id]
-        if bcr is not None:
-            for k, v in bcr.items():
-                if v == -1:
-                    if k not in bc_recroder:
-                        bc_recroder[k] = 0
-                    bc_recroder[k] += 1
-
+        # handle bc result.
+        
+        if dict_BC[frame_id] is not None:
             bc_happen_counter += 1
             if bc_happen_counter == bc_happen_limit:
                 bc_happen_counter = 0
-            else:
-                bcr = None
+                bcr = dict_BC[frame_id]
+            
         fm = dict_frame[frame_id]
         mot_exist_flag = dict_MOT[frame_id] is not None
         if mot_exist_flag:
@@ -58,7 +53,7 @@ def run(*params):
                 if dict_config['MOT']:
                     if dict_config['ID'] == 0 or dict_config['ID'] == ID:
                         color = colors[0]
-                        if limit > 0 and ID in bc_recroder:
+                        if limit > 0 and bcr is not None and ID in bcr:
                             color = colors[1]
                             limit -= 1
                         cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
@@ -66,14 +61,15 @@ def run(*params):
                                 3, (255, 255, 0), thickness=2)
                 # record mot date each timestamp.
                 history_traj[ID].append([x1 + offset_x // 2, y1 + offset_y // 2])
-
+            # draw history trajectory.
             if dict_config['HTP']:
                 current_id = dict_MOT[frame_id].keys()
                 for ID, traj in history_traj.items():
                     if ID in current_id and (dict_config['ID'] == 0 or dict_config['ID'] == ID):
                         for v in traj[-30:]:
                             cv2.circle(fm, (int(v[0]), int(v[1])), 3, (0, 0, 255), -1)
-
+                            
+            # draw future trajectory
             if dict_config['FTP'] and frame_id in dict_future:
                 current_id = dict_MOT[frame_id].keys()
                 future = dict_future[frame_id]
@@ -89,7 +85,11 @@ def run(*params):
             counter += 1
             qt_set_fps(total_fps/counter)
         entry_time = time.time()
-
+        msg = dict_OT[frame_id]
+        cv2.putText(fm, msg, (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        cv2.imwrite('tmp_image/{}.png'.format(frame_id), fm)
         qt_set_img(fm)
+        
+
         frame_id += 1
     
