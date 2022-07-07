@@ -12,7 +12,7 @@ def run(*params):
         Output:
             None
     '''
-    sys_args = sys_args = system_parser.get_parser()
+    sys_args = system_parser.get_parser()
     # cap = cv2.VideoCapture(sys_args.video_path)
     print(video_path)
     cap = cv2.VideoCapture(video_path)

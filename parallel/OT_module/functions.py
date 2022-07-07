@@ -104,8 +104,6 @@ class overtaking_system:
         self.right_lane = np.array(self.right_lane, dtype=np.int32)
         final_top_idx = -1
         for i in range(len(self.left_lane[0])):
-            # print(len(self.left_lane[0]))
-            # print(len(self.right_lane[0]))
             left_x = self.left_lane[0][i]
             right_x = self.right_lane[0][i]
             if left_x > right_x:
@@ -145,13 +143,9 @@ class overtaking_system:
         if self.left_lane is not None and self.right_lane is not None:
             diff_lane = abs(len(self.left_lane[0]) - len(self.right_lane[0]))
             if diff_lane > 50: # bad lane line detection, failed
-                return 
+                return
             self.both_lane_flag = True
-            self.update_lane()
-            
-            # print(len(self.left_lane[0]), len(self.left_lane[1]))
-            # print(len(self.right_lane[0]), len(self.right_lane[1]))
-            
+            self.update_lane()            
 
     def set_msg(self, res_flag):
         
@@ -296,25 +290,4 @@ class overtaking_system:
         else:
             self.res_flag = 2
         self.set_msg(self.res_flag)
-
-        # detect without bounding box width
-        # self.obj_flag = False
-        # for i in range(len(bbs)):
-        #     (_, ratio) = self.overlap(bbs[i])
-        #     if ratio >= self.overlap_rate:
-        #             self.obj_flag = True
-        
-        # if self.obj_flag:
-        #     self.detect_lane_available(frame)
-        #     (l_flag, r_flag) = self.detect_result
-        #     if l_flag and r_flag:
-        #         self.res_flag_nowidth = -1
-        #     elif l_flag:
-        #         self.res_flag_nowidth = -1
-        #     elif r_flag:
-        #         self.res_flag_nowidth = 1
-        #     else:
-        #         self.res_flag_nowidth = 0
-        # else:
-        #     self.res_flag_nowidth = 2
         
