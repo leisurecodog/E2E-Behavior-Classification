@@ -1,4 +1,6 @@
+
 def run(*params):
+    import cv2
     dict_frame, dict_objdet, dict_OT, lock, signal = params
     from OT_module.OT import OT
     import time
@@ -14,7 +16,9 @@ def run(*params):
             if bbox is None:
                 continue
             t1 = time.time()
-            module_OT.run(frame, bbox)
+            module_OT.run(frame, bbox, True)
+            # cv2.imshow('ttttt', frame)
+            # cv2.waitKey(1)
             # lock.acquire()
             dict_OT.update({frame_id:module_OT.OTS.msg})
             # lock.release()

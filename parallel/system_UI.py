@@ -38,10 +38,10 @@ class Ui_MainWindow(object):
         # self.label_suggestion.setObjectName("label_suggest")
         # self.label_suggestion.move(700, 370)
         # self.label_suggestion.setFont(QFont('Arial', 16))
-        self.label_fps = QtWidgets.QLabel(self.centralwidget)
-        self.label_fps.setObjectName("label_fps")
-        self.label_fps.move(820, 54)
-        self.label_fps.setFont(QFont('Arial', 14))
+        # self.label_fps = QtWidgets.QLabel(self.centralwidget)
+        # self.label_fps.setObjectName("label_fps")
+        # self.label_fps.move(820, 54)
+        # self.label_fps.setFont(QFont('Arial', 14))
 
         MainWindow.setCentralWidget(self.centralwidget)
         # barbarbar
@@ -131,7 +131,7 @@ class Ui_MainWindow(object):
         self.label_opened.setText(_translate("MainWindow", "./"))
         self.label_id.setText(_translate("MainWindow", "ID: "))
         # self.label_suggestion.setText(_translate("MainWindow", "Suggestion: "))
-        self.label_fps.setText(_translate("MainWindow", "FPS:"))
+        # self.label_fps.setText(_translate("MainWindow", "FPS:"))
 
         self.btn_start.setText(_translate("MainWindow", "Start"))
         self.btn_stop.setText(_translate("MainWindow", "Stop"))

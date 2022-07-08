@@ -94,7 +94,8 @@ def run(*params):
         #     qt_set_fps(total_fps/counter)
         # entry_time = time.time()
         cv2.putText(fm, OT_msg, (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-        cv2.imwrite('tmp_image/{}.png'.format(frame_id), fm)
+        # cv2.imwrite('tmp_image/{}.png'.format(frame_id), fm)
         qt_set_img(fm)
+        
         frame_id += 1
     
