@@ -40,7 +40,7 @@ class OT:
         st = time.time()
         # frame.shape: [Height, Width, Channels]
         center_x = frame.shape[1] / 2 # get image center
-        
+        self.OTS.trg_img_width = frame.shape[1]
         # Get lane line
         # x_coord, y_coord = [], []
         x_coord, y_coord = self.lane_predict(self.lane_agent, frame)
@@ -66,7 +66,7 @@ class OT:
                     cv2.circle(frame, (int(self.OTS.left_lane[0][i]), int(self.OTS.left_lane[1][i])), 3, (0, 0, 255), -1)
                 for i in range(len(self.OTS.right_lane[0])):
                     cv2.circle(frame, (int(self.OTS.right_lane[0][i]), int(self.OTS.right_lane[1][i])), 3, (0, 0, 255), -1)
-                frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
+                # frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
             self.counter += 1
             self.exe_time += (time.time() - st)
         else:

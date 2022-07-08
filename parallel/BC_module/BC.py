@@ -21,6 +21,7 @@ class BC:
         self.exe_time = 0
 
     def is_satisfacation(self, id_counter):
+        self.result = None
         if len(id_counter) < self.BC_args.id_num or max(id_counter.values()) < self.BC_required_len:
             return False
         self.id_counter = id_counter

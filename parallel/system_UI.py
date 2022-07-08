@@ -34,10 +34,10 @@ class Ui_MainWindow(object):
         self.label_opened.setObjectName("label_opened_file")
         self.label_opened.move(820, 435)
         self.label_opened.setFont(QFont('Arial', 14))
-        self.label_suggestion = QtWidgets.QLabel(self.centralwidget)
-        self.label_suggestion.setObjectName("label_suggest")
-        self.label_suggestion.move(700, 370)
-        self.label_suggestion.setFont(QFont('Arial', 16))
+        # self.label_suggestion = QtWidgets.QLabel(self.centralwidget)
+        # self.label_suggestion.setObjectName("label_suggest")
+        # self.label_suggestion.move(700, 370)
+        # self.label_suggestion.setFont(QFont('Arial', 16))
         self.label_fps = QtWidgets.QLabel(self.centralwidget)
         self.label_fps.setObjectName("label_fps")
         self.label_fps.move(820, 54)
@@ -130,7 +130,7 @@ class Ui_MainWindow(object):
         self.label_vid.setText(_translate("MainWindow", "TextLabel"))
         self.label_opened.setText(_translate("MainWindow", "./"))
         self.label_id.setText(_translate("MainWindow", "ID: "))
-        self.label_suggestion.setText(_translate("MainWindow", "Suggestion: "))
+        # self.label_suggestion.setText(_translate("MainWindow", "Suggestion: "))
         self.label_fps.setText(_translate("MainWindow", "FPS:"))
 
         self.btn_start.setText(_translate("MainWindow", "Start"))
@@ -200,11 +200,16 @@ class MainWindow_controller(QtWidgets.QMainWindow):
         
         self.t1 = threading.Thread(target=Output_reader, 
         args=(self.dict_frame, self.dict_MOT, self.dict_traj_future,\
-             self.dict_BC, self.dict_OT, self.lock, self.config, self.end_signal, self.set_img, self.set_fps, self.stop_func))
+             self.dict_BC, self.dict_OT, self.lock, self.config, \
+                self.end_signal, self.set_img,))
         # start each subprocess
     def set_fps(self, fps):
         self.ui.label_fps.setText("FPS: {}".format(round(fps, 4)))
         self.ui.label_fps.adjustSize()
+
+    def set_OT(self, msg):
+        self.ui.label_suggestion.setText("Suggest: {}".format(msg))
+        self.ui.label_suggestion.adjustSize()
 
     def set_img(self, fm):
         self.fm = cv2.resize(fm, (640, 480))
@@ -282,7 +287,6 @@ class MainWindow_controller(QtWidgets.QMainWindow):
             self.ui.label_opened.setText(filename.split('/')[-1])
             self.ui.label_opened.setStyleSheet('color:black')
             self.ui.label_opened.adjustSize()
-        # print(filename, filetype)
     
     def MOT_cb(self):
         self.config['MOT'] = self.ui.checkbox_MOT.isChecked()
@@ -309,8 +313,6 @@ class MainWindow_controller(QtWidgets.QMainWindow):
 
     def active_OT(self):
         self.config['OT'] = self.ui.checkbox_OT.isChecked()
-    
-    
 
     def disp_config(self, flag=None):
         disp_state = self.ui.checkbox_disp.isChecked()
@@ -335,4 +337,3 @@ class MainWindow_controller(QtWidgets.QMainWindow):
     def close_App(self):
         self.stop_func()
         self.close()
-

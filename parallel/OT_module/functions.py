@@ -94,11 +94,13 @@ class overtaking_system:
         self.detect_result = (False, False)
         self.both_lane_flag = False
         self.res_flag_nowidth = -2
-
+        self.kitti_width = 1242
+        self.trg_img_width = 0
     def set_center(self, pt):
         self.center = pt
     
-
+    def scale_ratio(self):
+        return self.trg_img_width / self.kitti_width
     def update_lane(self):
         self.left_lane = np.array(self.left_lane, dtype=np.int32)
         self.right_lane = np.array(self.right_lane, dtype=np.int32)
@@ -215,7 +217,8 @@ class overtaking_system:
                 # cv2.circle(frame, (int(coord_right_x),int(coord_right_y)), 2, (255,255,0), 2)
             threshold = coord_right_x - coord_left_x
             threshold_list[i] = threshold
-            bias = 5 # calculate sum of left and right not from center of line
+            bias = 5 
+            # calculate sum of left and right not from center of line
             sum_left = 0
             sum_right = 0
             for j in range(coord_left_x-bias, 0, -1):
@@ -230,8 +233,6 @@ class overtaking_system:
                 else:
                     break
             overlap_right[i] = sum_right
-        # True: can go
-        # False: can't go
         res_l = True
         res_r = True
         for i in range(split):
@@ -242,7 +243,6 @@ class overtaking_system:
             if overlap_right[i] < threshold_list[i] * self.variant:
                 res_r = False
                 break
-
         self.detect_result = (res_l, res_r)   
 
     def detect_overtaking(self, bbs, lane_mask, frame=None):
@@ -256,7 +256,8 @@ class overtaking_system:
         self.res_flag_nowidth = -2
         self.cant_flag = False
         self.dneed_flag = False
-
+        upper = 78 * self.scale_ratio()
+        lower = 195 * self.scale_ratio()
         for i in range(len(bbs)):
             (_, ratio) = self.overlap(bbs[i])
             
@@ -264,18 +265,17 @@ class overtaking_system:
                 bbwid = bbs[i][2] - bbs[i][0]
                 # get object width, now only have vehicle size.
                 # using object width to determine overtake or don't need.
-                if bbwid > 195:
+                if bbwid > lower:
                     self.cant_flag = True
-                elif bbwid < 78:
+                elif bbwid < upper:
                     self.dneed_flag = True
-                elif bbwid >= 78 and bbwid <= 195: 
+                elif bbwid >= upper and bbwid <= lower: 
                     self.obj_flag = True
-        # print(self.cant_flag, self.dneed_flag, self.obj_flag)
+        
         if self.cant_flag:
             self.res_flag = 0
         elif self.dneed_flag:
             self.res_flag = 2
-            # print(self.res_flag)
         elif self.obj_flag:
             self.detect_lane_available(frame)
             (l_flag, r_flag) = self.detect_result
