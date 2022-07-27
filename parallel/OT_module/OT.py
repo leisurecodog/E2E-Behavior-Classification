@@ -44,14 +44,15 @@ class OT:
         # Get lane line
         # x_coord, y_coord = [], []
         x_coord, y_coord = self.lane_predict(self.lane_agent, frame)
-        
+        t1 = time.time()
         if len(x_coord) > 0 and len(y_coord) > 0:    
             self.OTS.set_lane([x_coord, y_coord], center_x)
-        
+        t2 = time.time()
         # execute ot detect when both lane is detected.
         if self.OTS.both_lane_flag:
             
             # Yolact pre-stage
+            t3 = time.time()
             frame_tensor = torch.from_numpy(frame).cuda().float()
             batch = self.transform()(frame_tensor.unsqueeze(0))
             with torch.no_grad():
@@ -59,7 +60,7 @@ class OT:
             preds = net_outs["pred_outs"]
             # Get lane mask
             lane_mask = self.get_mask(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
-            # t3 = time.time()
+            
             self.OTS.detect_overtaking(objdet, lane_mask, frame)
             if test:
                 for i in range(len(self.OTS.left_lane[0])):
@@ -69,10 +70,12 @@ class OT:
                 # frame = cv2.addWeighted(lane_mask, 1, frame, 1, 0.0)
             self.counter += 1
             self.exe_time += (time.time() - st)
+            t4 = time.time()
+            # print(t4-t3, t2-t1, t1-st)
         else:
             self.OTS.set_msg(0)
-        t4 = time.time()
+        
         self.frame_id += 1
         if test:
             return frame
-        # print(t3-t2, t4-t3)
+        

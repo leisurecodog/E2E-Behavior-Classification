@@ -51,13 +51,13 @@ def test_OT(label_path):
 
     o_rate_iter = np.arange(100, 0, -10)
     var_iter = np.arange(1, 0, -0.1)
-    debug_flag = True
+    debug_flag = False
     gt_total_label = {0:0, 1:0, 2:0, 3:0}
     pred_total_label = {0:0, 1:0, 2:0, 3:0}
     for r1 in o_rate_iter:
         for r2 in var_iter:
             module_OT.OTS.overlap_rate = 10
-            module_OT.OTS.variant = 0.9
+            module_OT.OTS.variant = 0.8
             avg_acc = 0
             avg_acc_ano = 0
             avg_acc_have_lane = 0
@@ -131,6 +131,7 @@ def test_OT(label_path):
                 total_hl_gt.extend(hl_gt)
                 total_pred.extend(pred)
                 total_gt.extend(gt)
+            # print(total_gt)
             print(confusion_matrix(total_gt, total_pred))
             print(confusion_matrix(total_hl_gt, total_hl_pred))
 
@@ -142,9 +143,9 @@ def test_OT(label_path):
                 .format(round(r1, 4), round(r2, 4), round(avg_acc, 4),\
                      round(avg_acc_nowidth, 4), round(avg_acc_have_lane, 4))
             print(disp_str)
-            break
-        print(gt_total_label)
-        return 
+            
+        # print(gt_total_label)
+        # return 
             
 
 if __name__ == '__main__':

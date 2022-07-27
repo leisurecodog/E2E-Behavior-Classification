@@ -6,7 +6,7 @@ import sys
 
 def run(*params):
     dict_frame, dict_MOT, dict_future, dict_BC,\
-    dict_OT, lock, dict_config, signal, qt_set_img = params
+    dict_OT, lock, dict_config, signal, qt_set_img, qt_set_fps = params
     frame_id = 0
     entry_time = 0
     total_fps = 0
@@ -61,7 +61,8 @@ def run(*params):
                 if dict_config['MOT']:
                     if dict_config['ID'] == 0 or dict_config['ID'] == ID:
                         color = colors[0]
-                        if limit > 0 and bcr is not None and ID in bcr and not bc_none_flag:
+                        # if limit > 0 and bcr is not None and ID in bcr and not bc_none_flag:
+                        if limit > 0 and bcr is not None and ID in bcr:
                             color = colors[1]
                             limit -= 1
                         cv2.rectangle(fm, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
@@ -85,17 +86,16 @@ def run(*params):
                     if ID in current_id and (dict_config['ID'] == 0 or dict_config['ID'] == ID):
                         for v in traj:
                             cv2.circle(fm, (int(v[0]), int(v[1])), 3, (255, 0, 0), -1)
-        # if entry_time != 0:
-        #     ts = time.time() - entry_time
-        #     FPS = 1 / ts
-        #     qt_set_fps(FPS)
-        #     total_fps += FPS
-        #     counter += 1
-        #     qt_set_fps(total_fps/counter)
-        # entry_time = time.time()
+        if entry_time != 0:
+            ts = time.time() - entry_time
+            FPS = 1 / ts
+            qt_set_fps(FPS)
+            total_fps += FPS
+            counter += 1
+            # qt_set_fps(total_fps/counter)
+        entry_time = time.time()
         cv2.putText(fm, OT_msg, (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-        # cv2.imwrite('tmp_image/{}.png'.format(frame_id), fm)
         qt_set_img(fm)
-        
+        # input()
         frame_id += 1
     

@@ -58,7 +58,7 @@ def PInet_test(lane_agent, test_images, thresh = p.threshold_point):
     resize_images = np.array([resize_images])
     t1 = time.time()
     result = lane_agent.predict_lanes_test(resize_images)
-    # print("OT inference time: ", (time.time()-t1)*1000)
+    # print("PINet inference time: ", (time.time()-t1))
     confidences, offsets, instances = result[-1]
 
     ratio_h = test_images.shape[0] / resize_images.shape[2]
