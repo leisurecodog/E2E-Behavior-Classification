@@ -10,7 +10,7 @@
 - cuDNN: 8.0.3.33-1
 - TensorRT: 7.1.3-1
 
-
+How to install this Project:
 ```sh
 git clone https://github.com/leisurecodog/Thesis-Project.git
 pip install requirements.txt
