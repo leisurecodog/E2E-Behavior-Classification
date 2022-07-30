@@ -1,4 +1,5 @@
-# Thesis-Project
+# E2E Bahavior Classification
+This project is the implementation of my master thesis: End-To-End System For Road Agents Behavior Classification Based On Dash Cam Image, in the following will describe how this project work, what and how data is used.
 
 ## Install
 
@@ -12,6 +13,6 @@
 
 How to install this Project:
 ```sh
-git clone https://github.com/leisurecodog/Thesis-Project.git
+git clone https://github.com/leisurecodog/E2E-Behavior-Classification.git
 pip install requirements.txt
 ```
