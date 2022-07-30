@@ -20,7 +20,7 @@ git clone https://github.com/leisurecodog/E2E-Behavior-Classification.git
 pip install requirements.txt
 ```
 
-The pipeline version is no longer maintained, all of newest implementation is placed in parallel folder, if you need to run pipeline version, please follow the parallel version to modify.
+**The pipeline version is no longer maintained**, all of newest implementation is placed in **parallel** folder, if you need to run pipeline version, please follow the parallel version to modify.
 
 How to run this project:
 ```sh
