@@ -33,8 +33,24 @@ python system_main.py
 
 - TP: Trajectory Prediction, modified from [DDPG](https://github.com/ghliu/pytorch-ddpg).
 - BC: Behavior Classification, modified from [GraphRQI](https://github.com/rohanchandra30/GraphRQI).
-- OT: Overtaking Assistance, created by self.
+- OT: Overtaking Assistance, combined from PINet, Yolact_Edge and our overtaking detection algorithm.
 
 If you want to modify the module, please follow the above abbreviation description to find corresponding folder.
 
 If you want to replace the module, you need to rewrite the corresponding file in the module folder, such as TP_module/TP.py
+
+## Dataset
+### BDD100K/BDD100K MOT
+BDD100K: [link](https://www.bdd100k.com/)<br>
+
+This dataset is used to Training Multiple Object Tracking, Trajectory Prediction and Behavior Classification. <br>for training the Behavior Classification, you need to label data by self, bolow is the example of label file :
+```sh
+# label format: object_id, behavior label.
+# 0 means conservative, 1 means aggressive.
+1, 0 
+2, 1
+...
+```
+We will upload part of our label file to there for more clear description.
+### KITTI/KITTI Tracking
+### CEO Videos
