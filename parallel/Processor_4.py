@@ -22,14 +22,16 @@ def run(*params):
     FPS = 0
     OT_msg = ''
     while True:
-        # or frame_id == signal.value
         if dict_config['Exit'] :
             print("EXIT")
             # qt_stop_func()
             return
         # output: show video if all data is in share dictionary.
+        # 等待超車輔助結果
         while dict_config['OT'] and frame_id not in dict_OT:
             continue
+
+        # 等待行為分類結果
         while frame_id not in dict_BC:
             continue
         # handle bc result.
@@ -47,12 +49,13 @@ def run(*params):
                 OT_msg = dict_OT[frame_id]
             else:
                 OT_msg = ''
-        # print(bc_none_flag, OT_msg)
+        
         fm = dict_frame[frame_id]
         mot_exist_flag = dict_MOT[frame_id] is not None
         if mot_exist_flag:
             bbox = dict_MOT[frame_id]
             limit = 5
+            # 畫出物件框
             for ID, current in bbox.items():
                 if ID not in history_traj:
                     history_traj[ID] = []

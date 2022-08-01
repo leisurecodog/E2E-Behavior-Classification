@@ -8,8 +8,10 @@ def run(*params):
     frame_id = 0
     while True:
         if frame_id in dict_objdet:
+            # 讀取影像與bounding boxes
             bbox = dict_objdet[frame_id]
             frame = dict_frame[frame_id]
+            
             if bbox is not None:    
                 # ======================== OT Work ======================
                 module_OT.run(frame, bbox)

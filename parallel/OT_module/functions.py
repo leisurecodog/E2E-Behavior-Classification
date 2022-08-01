@@ -200,6 +200,7 @@ class overtaking_system:
             ratio = 100.0
         return (flag, ratio)
 
+    # 偵測兩側車道
     def detect_lane_available(self, frame=None):
         split = 10
         devide = len(self.left_lane[0]) // split
@@ -244,7 +245,8 @@ class overtaking_system:
                 res_r = False
                 break
         self.detect_result = (res_l, res_r)   
-
+    
+    # 超車判斷
     def detect_overtaking(self, bbs, lane_mask, frame=None):
         if not self.both_lane_flag:
             self.set_msg(0)

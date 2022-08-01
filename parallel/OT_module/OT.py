@@ -23,6 +23,7 @@ class OT:
         self.moving_statistics = {"conf_hist": []}
         self.extras = {"backbone": "full", "interrupt": False,\
              "keep_statistics": False,"moving_statistics": self.moving_statistics}
+        
         # PInet setting
         self.lane_predict = PInet_test
         self.lane_agent = Agent()
@@ -30,6 +31,7 @@ class OT:
         self.lane_agent.evaluate_mode()
         self.lane_agent.load_weights(895, "tensor(0.5546)")
         
+        # OTS setting
         self.OTS = functions.overtaking_system()
         self.OT_args = set_opt()
         self.frame_id = 0
@@ -43,11 +45,14 @@ class OT:
         self.OTS.trg_img_width = frame.shape[1]
         # Get lane line
         # x_coord, y_coord = [], []
+        # 偵測車道線
         x_coord, y_coord = self.lane_predict(self.lane_agent, frame)
         t1 = time.time()
+        # 更新車道線
         if len(x_coord) > 0 and len(y_coord) > 0:    
             self.OTS.set_lane([x_coord, y_coord], center_x)
         t2 = time.time()
+
         # execute ot detect when both lane is detected.
         if self.OTS.both_lane_flag:
             
@@ -61,7 +66,9 @@ class OT:
             # Get lane mask
             lane_mask = self.get_mask(preds, frame_tensor, None, None, undo_transform=False, class_color=True)
             
+            # 偵測超車
             self.OTS.detect_overtaking(objdet, lane_mask, frame)
+            # test flag為True時會把車道線畫出來做debug
             if test:
                 for i in range(len(self.OTS.left_lane[0])):
                     cv2.circle(frame, (int(self.OTS.left_lane[0][i]), int(self.OTS.left_lane[1][i])), 3, (0, 0, 255), -1)
