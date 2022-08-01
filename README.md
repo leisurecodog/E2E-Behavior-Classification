@@ -42,7 +42,7 @@ If you want to replace the module, you need to rewrite the corresponding file in
 ## Dataset
 ### BDD100K/BDD100K MOT
 BDD100K: [link](https://www.bdd100k.com/)<br>
-This dataset is used to Training Multiple Object Tracking, Trajectory Prediction and Behavior Classification. <br>for training the Behavior Classification, you need to label data by self, bolow is the example of label file :
+This dataset is used to Training Multiple Object Tracking, Trajectory Prediction and Behavior Classification. <br>for training the Behavior Classification, you need to label data by self, bolow is the example of label file a frame :
 ```sh
 # label format: object_id, behavior label.
 # 0 means conservative, 1 means aggressive.
