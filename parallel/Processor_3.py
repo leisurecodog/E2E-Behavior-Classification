@@ -24,7 +24,6 @@ def run(*params):
         '''
         ret_val, frame = cap.read()
         if ret_val:
-            g_frame = frame # TODO
             if sys_args.resize:
                 frame = cv2.resize(frame, (sys_args.size))
             dict_frame.update({frame_id:frame})

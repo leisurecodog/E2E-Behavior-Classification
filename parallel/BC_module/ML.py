@@ -7,8 +7,17 @@ def Oversampling(x, y, m='SMOTE'):
     if m == 'SMOTE':
         from imblearn.over_sampling import SMOTE
         oversample = SMOTE()
-
     return oversample.fit_resample(x, y)
+
+def Undersampling(x, y, m='ENN'):
+    from imblearn.under_sampling import EditedNearestNeighbours, TomekLinks
+    undersample = ''
+    if m == 'ENN':
+        undersample = EditedNearestNeighbours()
+    elif m == 'Tomek':
+        undersample = TomekLinks()
+        
+    return undersample.fit_resample(x, y)
 
 def show_metrics(y_total, pred_total, flag=False):
     from sklearn.metrics import confusion_matrix, classification_report
@@ -153,7 +162,7 @@ def xgboost_train_test(xtrain, ytrain, xtest, ytest):
     return show_metrics(ytest, y_pred)
 
 def rf_train_test(xtrain, ytrain, xtest, ytest):
-
+    
     from sklearn.ensemble import RandomForestClassifier
     forest = RandomForestClassifier(n_estimators=200, random_state=0)
     y_pred = forest.fit(xtrain, ytrain).predict(xtest)
@@ -178,26 +187,48 @@ def imb_xgboost_train_test(xtrain, ytrain, xtest, ytest):
     return res1, res2
 
 def osvm_train_test(xtrain, ytrain, xtest, ytest):
+    from sklearn.model_selection import GridSearchCV
     from sklearn.svm import OneClassSVM
-    model = OneClassSVM()
-    inliter = []
-    # get inlier data
+    
+    training_conservative = []
+    training_aggressive = []
+    conservative_remain_data = {}
+    # training convservative data
+    model1 = OneClassSVM()
     for idx, y in enumerate(ytrain):
         if y == 0:
-            inliter.append(xtrain[idx])
-    
-    model.fit(inliter)
-    yhat = model.predict(xtest)
-    # label == 1 mean inlier
-    # label == -1 mean outlier
+            training_conservative.append(xtrain[idx])
 
-    for i in range(len(yhat)):
-        if yhat[i] == 1:
-            yhat[i] = 0
-        elif yhat[i] == -1:
-            yhat[i] = 1
-    res = show_metrics(ytest, yhat)
-    return res
+    model1.fit(training_conservative)
+    yhat1 = model1.predict(xtest)
+    
+    for i in range(len(yhat1)):
+        if yhat1[i] == 1:
+            conservative_remain_data[i] = yhat1[i]
+            yhat1[i] = 0
+        elif yhat1[i] == -1:
+            yhat1[i] = 1
+
+    # training aggressive data
+    model2 = OneClassSVM(nu=0.8)
+    for idx, y in enumerate(ytrain):
+        if y == 1:
+            training_aggressive.append(xtrain[idx])
+    model2.fit(training_aggressive)
+
+    yhat2 = model2.predict(xtest)
+    
+    for i in range(len(yhat2)):
+        if yhat2[i] == 1:
+            yhat2[i] = 1
+            if i in conservative_remain_data:
+                yhat1[i] = 1
+        elif yhat2[i] == -1:
+            yhat2[i] = 0
+
+    r1 = show_metrics(ytest, yhat1)
+
+    return r1
 
 
 def isolation_forest_train_test(xtrain, ytrain, xtest, ytest):

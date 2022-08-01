@@ -8,6 +8,7 @@ def add_parser():
     parser.add_argument('--s1_thre', default=10, type=int)
     parser.add_argument('--s2_thre', default=10, type=int)
     parser.add_argument('--oversampling', default=False, action='store_true')
+    parser.add_argument('--undersampling', default=False, action='store_true')
     # parser.add_argument('--do_s1', default=False, action='store_true')
     # parser.add_argument('--do_s2', default=False, action='store_true')
     parser.add_argument('--ext_mode', default=1,
@@ -15,7 +16,7 @@ def add_parser():
     parser.add_argument('--gap', default=1, type=int, help='get MOT gap, when train data is frame by frame')
     parser.add_argument('--test', default=False, action='store_true')
     parser.add_argument('--load', default=False, action='store_true')
-    parser.add_argument('--neighber', default=6, type=int)
+    parser.add_argument('--neighber', default=4, type=int)
     parser.add_argument('--half1', default=False, action='store_true')
     parser.add_argument('--half2', default=False, action='store_true')
     parser.add_argument('--cmp', default=False, action='store_true')

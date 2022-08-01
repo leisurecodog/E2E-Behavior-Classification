@@ -22,10 +22,11 @@ from numpy import linalg as la
 from math import pow
 import time
 from sklearn import preprocessing
-import os
 from collections import Counter
-import warnings
-warnings.filterwarnings("ignore")
+
+ALGO = "CMetric"
+ALGO = "RQI"
+
 
 def generate_labels(data_path):
     all_labels = []
@@ -34,7 +35,7 @@ def generate_labels(data_path):
     # sheets = ['u8.xlsx']
     for sheet in sheets:
         labels = []
-        df = pd.read_excel ( data_path+sheet)
+        df = pd.read_excel (data_path+sheet)
         behavior_gt = df.values
         for row in range(behavior_gt.shape[0]):
             dict_item = {}
@@ -161,8 +162,8 @@ def GraphRQI ( U_prev, Lis_for_each_video, L_index, Lambda_prev):
             if np.isnan(x_new).any():
                 x_new = x_prev_new_tmp
 
-        u_j = x_new / la.norm(x_new)
-        Lambda_curr[j, j] = (u_j.T@(L@u_j)).item()
+        u_j = x_new/la.norm(x_new)
+        Lambda_curr[j,j] = (u_j.T@(L@u_j)).item()
         U.append(u_j)
     U = np.array(U).T
     # Lambda_curr[-1,-1] = 1
@@ -272,29 +273,24 @@ def computeA(list_of_videos, labels_list, nbrs, dataset, custom=False):
                 if id < max_ID:
                     for frame in video:
                         # print(id, list ( frame.keys () ))
-                        if id in list ( frame.keys () ):
-                            # mark starting frame (M[ID]==0 // the ID row of M will be all zeros)
-                            neighbors = computeKNN ( frame , id , nbrs, dataset )
-                            for neighbor in neighbors:
-                                if neighbor in labels:
-                                    if idx < labels.index(neighbor):
-                                        A[ idx ][ labels.index(neighbor) ] = 1
-                                        # A[ labels.index(neighbor)][ idx] = 1
-            
-            # modified method by FengAn
-            # for idx, id in enumerate (labels):
-            #     array_id = labels.index(id)
-            #     if array_id < max_ID:
-            #         for frame in video:
-            #             # print(id, list ( frame.keys () ))
-            #             if id in list (frame.keys()):
-            #                 # mark starting frame (M[ID]==0 // the ID row of M will be all zeros)
-            #                 neighbors = computeKNN (frame , id , nbrs, dataset)
-            #                 for neighbor in neighbors:
-            #                     if neighbor in labels:
-            #                         if idx < labels.index(neighbor):
-            #                             A[array_id][labels.index(neighbor)] = 1
-                                        # A[ labels.index(neighbor)][ idx] = 1
+                        if ALGO == 'RQI':
+                            if id in list ( frame.keys () ):
+                                    # mark starting frame (M[ID]==0 // the ID row of M will be all zeros)
+                                    neighbors = computeKNN ( frame , id , nbrs, dataset )
+                                    for neighbor in neighbors:
+                                        if neighbor in labels:
+                                            if idx < labels.index(neighbor):
+                                                A[ idx ][ labels.index(neighbor) ] = 1
+                                            # A[ labels.index(neighbor)][ idx] = 1
+                                    
+                        elif ALGO == 'CMetric':
+                            threshold_mu = 50
+                            for ii in range(len(frame.keys())):
+                                for jj in range(idx+1, len(frame.keys())):
+                                    x1, y1 = frame[frame.keys()[ii]]
+                                    x2, y2 = frame[frame.keys()[jj]]
+                                    dist = computeDist(x1, y1, x2, y2)
+                                    A[ idx ][ labels.index(neighbor) ] = dist if dist < threshold_mu else 0
             listOfA.append(A)
     else:
         list_of_argo_videos = list_of_videos
