@@ -33,7 +33,7 @@ python system_main.py
 ```
 And the UI will be displayed like below image:
 
-<img src="./imgs/demo/UI.jpg" alt="drawing" width="450" />
+<img src="./imgs/demo/UI.jpg" width="450" />
 
 ### Usage
 
