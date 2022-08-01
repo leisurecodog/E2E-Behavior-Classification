@@ -41,7 +41,7 @@ And the UI will be displayed like below image:
 
 - TP: Trajectory Prediction, modified from [DDPG](https://github.com/ghliu/pytorch-ddpg).
 - BC: Behavior Classification, modified from [GraphRQI](https://github.com/rohanchandra30/GraphRQI).
-- OT: Overtaking Assistance, combined from PINet, Yolact_Edge and our overtaking detection algorithm.
+- OT: Overtaking Assistance, combined from [PINet](https://arxiv.org/abs/2002.06604), [Yolact_Edge](https://github.com/haotian-liu/yolact_edge) and our overtaking detection algorithm. Please follow YolactEdge to calibration TensorRT, you can also execute this project without calibration (follow [there](https://github.com/haotian-liu/yolact_edge#inference-without-calibration)).
 
 If you want to modify the module, please follow the above abbreviation description to find corresponding folder.
 
@@ -49,18 +49,37 @@ If you want to replace the module, you need to rewrite the corresponding file in
 
 ## Dataset
 ### BDD100K/BDD100K MOT
+
 BDD100K: [link](https://www.bdd100k.com/)<br>
-This dataset is used to Training Multiple Object Tracking, Trajectory Prediction and Behavior Classification. <br>for training the Behavior Classification, you need to label data by self, bolow is the example of label file a frame :
+This dataset is used to Training Multiple Object Tracking, Trajectory Prediction and Behavior Classification.<br>
+If you need to training MOT module(ByteTrack), you can just follow other model that how to train a
+object detector, then replace the detector in ByteTrack and modify corresponding code. <br>
+For traning the Trajectory Prediction, you need to follow the above format:
 ```sh
-# label format: object_id, behavior label.
+# w: image weight
+# h: image height
+# format: object_class object_id center_x/w center_y/h object_w/w object_h/h 
+0 20 0.15 0.2 0.03 0.01 # example
+```
+and make sure that your images and labels is placed in corresponding location and name, like:
+```sh
+bdd100k/images/track/train/00a0f008/00a0f008-00001.jpg # image location, for get w and h
+bdd100k/labels_with_ids/track/train/00a0f008/00a0f008-00001.txt # annotation location
+```
+
+For training the Behavior Classification, you need to label data by self, bolow is the example of label file for a video:
+```sh
+# label format: object_id behavior_label.
 # 0 means conservative, 1 means aggressive.
-1, 0 
-2, 1
+1 0 
+2 1
 ...
 ```
 
 ### KITTI/KITTI Tracking
 KITTI: [link](http://www.cvlibs.net/datasets/kitti/)<br>
+This dataset is used to Evaluate Trajectory Prediction and Overtaking Assistance.<br>
+You can just downaload the KITTI Tracking dataset if you just want to evaluate Trajectory Prediction.<br>
+If you want to evaluate overtaking assistance, you need to download the raw data and LiDAR data of KITTI, and annotate overtaking data by yourself.
 ### CEO Videos
-
-We will upload part of our label file to there for more clear description.
+This dataset is used to display our total result, neither training nor evaluate.
