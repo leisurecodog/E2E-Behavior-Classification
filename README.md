@@ -71,14 +71,26 @@ If you want to train original ByteTrack, please click the [github link](https://
 
 Or you can just train other object detector like [SSD](https://arxiv.org/abs/1512.02325?context=cs) or others, then replace the YOLOX to what you train like [demo_track_yolov5.py](./parallel/MOT_module/source_code/tools/demo_track_yolov5.py).
 
+```sh
+python demo_track_yolov5.py
+```
+
 Evaluate and Test also can follow original ByteTrack guide.
 
 ___
 
 ### TP module
 
-If you want to training this method, you need to prepare data like [this](#bdd100kbdd100k-mot), then modify code in 
-
+If you want to training DDPG, you need to prepare data like [this](#bdd100kbdd100k-mot), then modify ```class environment``` in [env.py](./parallel/TP_module/source_code/env.py):
+```python
+if mode == 'default':
+    dataset = 'bdd100k'
+    self.datas = self.anonymous(data_preprocess(dataset), nb_t) # modify these line for load your own dataset.
+```
+then train DDPG:
+```sh
+python main.py --actor seq2seq # training DDPG that actor using seq2seq model.
+```
 ___
 
 ## Dataset
