@@ -65,7 +65,7 @@ Evaluate and Test also can follow original ByteTrack guide.
 
 ### TP module
 
-If you want to training the 
+If you want to training this method, you need to prepare data like [this](#bdd100kbdd100k-mot), then modify code in 
 
 ## Dataset
 ### BDD100K/BDD100K MOT
