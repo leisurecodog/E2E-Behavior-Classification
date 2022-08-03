@@ -115,7 +115,7 @@ if os.path.exists('data/train_metrics.npy'):
       if opt.dataset == 'own':
         ...
 
-      # make your if statment to load your dataset, remember to replace opt.dataset to your dataset name.
+      # write your if statment to load your dataset, remember to replace opt.dataset to your dataset name.
 ```
 Finally you can use above command to train and test on your own dataset.
 
@@ -144,11 +144,6 @@ For traning the Trajectory Prediction, you need to follow the above format:
 # format: object_class object_id center_x/w center_y/h object_w/w object_h/h 
 0 20 0.15 0.2 0.03 0.01 # example
 ```
-and make sure that your images and labels is placed in corresponding location and name, like:
-```sh
-bdd100k/images/track/train/00a0f008/00a0f008-00001.jpg # image location, for get image width and height
-bdd100k/labels_with_ids/track/train/00a0f008/00a0f008-00001.txt # annotation location
-```
 
 #### For training the Behavior Classification, you need to label data by self, bolow is the example of label file for a video:
 ```sh
@@ -157,6 +152,12 @@ bdd100k/labels_with_ids/track/train/00a0f008/00a0f008-00001.txt # annotation loc
 1 0 
 2 1
 ...
+```
+
+Make sure that your images and labels is placed in corresponding location and name, like:
+```sh
+bdd100k/images/track/train/00a0f008/00a0f008-00001.jpg # image location, for get image width and height
+bdd100k/labels_with_ids/track/train/00a0f008/00a0f008-00001.txt # annotation location
 ```
 ___
 ### KITTI/KITTI Tracking
