@@ -67,13 +67,14 @@ ___
 
 ### MOT module
 
+Demo:
 ```sh
 python demo_track_yolov5.py
 ```
 
 If you want to train original ByteTrack, please click the [github link](https://github.com/ifzhang/ByteTrack) and follow the guide.
 
-Or you can just train other object detector like [SSD](https://arxiv.org/abs/1512.02325?context=cs) or others, then replace the YOLOX to what you train like [demo_track_yolov5.py](./parallel/MOT_module/source_code/tools/demo_track_yolov5.py).
+Or you can just train other object detector like [SSD](https://arxiv.org/abs/1512.02325?context=cs) or others, then replace the YOLOX to model you train, like [demo_track_yolov5.py](./parallel/MOT_module/source_code/tools/demo_track_yolov5.py).
 
 
 
@@ -87,7 +88,7 @@ Train DDPG:
 ```sh
 python main.py --actor seq2seq # training DDPG that actor using seq2seq model.
 ```
-After training end, test function will be called automatically.
+After training end, test function will be called automatically.If you only want to split train and test stage, you can using ```env.py``` and ```evaluator.py``` to write your ```test.py```.
 
 If you want to training DDPG with your own dataset, you need to prepare data like [this](#bdd100kbdd100k-mot), then modify ```class environment``` in [env.py](./parallel/TP_module/source_code/env.py):
 ```python
@@ -104,7 +105,16 @@ Train our modified GraphRQI, run below code and it will train and test, then pri
 
 ```sh
 python python gRQI_custom.py --anomaly --oversampling --undersampling
+# anomaly: using One-Class SVM
+# oversampling: using SMOTE
+# undersampling: using Tomek Links
 ```
+You can change the resample order by modify [gRQI_custom.py](./parallel/BC_module/source_code/gRQI_custom.py) in the following line:
+```python
+if opt.anomaly:
+    four_data = [{},{}]
+```
+
 If you want to label your own dataset, please follow [this](#for-training-the-behavior-classification-you-need-to-label-data-by-self-bolow-is-the-example-of-label-file-for-a-video) label format to label your data and above image/label location. 
 
 Then follow the following code in [gRQI_custom.py](./parallel/BC_module/source_code/gRQI_custom.py) to modify:
