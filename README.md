@@ -47,13 +47,23 @@ If you want to modify the module, please follow the above abbreviation descripti
 
 If you want to replace the module, you need to rewrite the corresponding file in the module folder, such as TP_module/TP.py
 
+## Training & Testing
+Each folder of module have a folder name call **source_code** except OT module, this folder contains all of original files. if needs any training, testing or others, you can use this folder.
+
+In the following guide will describe how to use  source code of each module.
+
+### MOT module
+
+If you want to train original ByteTrack, please click the [github link](https://github.com/ifzhang/ByteTrack) and follow the guide. Or you can just train other object detector like [SSD](https://arxiv.org/abs/1512.02325?context=cs) or others, then replace the YOLOX to what you train like [demo_track_yolov5.py](./parallel/MOT_module/source_code/tools/demo_track_yolov5.py).
+
+
 ## Dataset
 ### BDD100K/BDD100K MOT
 
 BDD100K: [link](https://www.bdd100k.com/)<br>
 This dataset is used to Training Multiple Object Tracking, Trajectory Prediction and Behavior Classification.<br>
-If you need to training MOT module(ByteTrack), you can just follow other model that how to train a
-object detector, then replace the detector in ByteTrack and modify corresponding code. <br>
+<!-- If you need to training MOT module(ByteTrack), you can just follow other model that how to train a
+object detector, then replace the detector in ByteTrack and modify corresponding code. <br> -->
 For traning the Trajectory Prediction, you need to follow the above format:
 ```sh
 # w: image weight
