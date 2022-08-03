@@ -1,5 +1,8 @@
 # E2E Bahavior Classification
-This project is the implementation of my thesis: **End-To-End System For Road Agents Behavior Classification Based On Dash Cam Image**, in the following will describe how this project work, what and how dataset is used.
+
+## Introduction
+
+This project is the implementation of my master's thesis: **End-To-End System For Road Agents Behavior Classification Based On Dash Cam Image**, in the following will describe how this project work, what and how dataset is used.
 
 <p align="center">
   <img src="./imgs/demo/BC.gif" alt="drawing" width="350" />
