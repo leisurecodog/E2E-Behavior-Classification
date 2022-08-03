@@ -8,8 +8,12 @@ This project is the implementation of my master's thesis: **End-To-End System Fo
   <img src="./imgs/demo/BC.gif" alt="drawing" width="350" />
 </p>
 
+___
+
 ## Abstract
 > The classification of road agents' behavior is an important study in the field of self-driving. Identifying which road agents are inclined to dangerous or normal behavior during the driving process can improve the safety of the driving process. In addition to the importance of road agent behavior classification in the field of self-driving, it can also achieve a certain degree of driving assistance to remind and advise the driver to reduce the risk of driving in the process. The system can use the results of multi-object tracking to form a historical trajectory, and by turning on trajectory prediction, the system can predict the future path, and then use the historical and predicted trajectory to classify individual road agents as aggressive or conservative drivers, and use overtaking assistance to provide users with driving recommendations under normal conditions. We also design a highly efficient parallelization system for the dependency and independence of the input and output of each module, so that the whole system can reach the speed of real-time detection.
+
+___
 
 ## Installation
 
@@ -38,6 +42,8 @@ And the UI will be displayed like below image:
 
 <img src="./imgs/demo/UI.jpg" width="450" />
 
+___
+
 ### Usage
 
 - MOT: Multiple Object Tracking, modified from [ByteTrack](https://github.com/ifzhang/ByteTrack).
@@ -50,10 +56,14 @@ If you want to modify the module, please follow the above abbreviation descripti
 
 If you want to replace the module, you need to rewrite the corresponding file in the module folder, such as TP_module/TP.py
 
+___
+
 ## Train & Test
 Each folder of module have a folder name call **source_code** except OT module, this folder contains all of original files. if needs any training, testing or others, you can use this folder.
 
 In the following guide will describe how to use  source code of each module.
+
+___
 
 ### MOT module
 
@@ -63,9 +73,13 @@ Or you can just train other object detector like [SSD](https://arxiv.org/abs/151
 
 Evaluate and Test also can follow original ByteTrack guide.
 
+___
+
 ### TP module
 
 If you want to training this method, you need to prepare data like [this](#bdd100kbdd100k-mot), then modify code in 
+
+___
 
 ## Dataset
 ### BDD100K/BDD100K MOT
