@@ -177,12 +177,7 @@ def main(opt):
                     labels_list[0][i][1] = 1.0
                 else:
                     labels_list[0][i][1] = 0.0
-        np.save(aggressive_name, np.array(aggressive_id))
-        np.save(appear_id_name, np.array(appear_id))
-
-        if opt.vid_num >= 100 and opt.dataset != 'argo': # save data
-            np.save(data_name, np.array(videos_list))
-            np.save(label_name, np.array(labels_list))
+        
         # print(np.shape(videos_list), np.shape(labels_list))
         # print(np.shape(videos_list[0]), np.shape(labels_list[0]))    
         
@@ -203,19 +198,6 @@ def main(opt):
             U_Matrices = list(np.load(U_name + '.npy', allow_pickle=True))
         else:
             U_Matrices = RQI(Laplacian_Matrices)
-        # RQI(Laplacian_Matrices)
-        end_time = time.time()
-        # total_time = end_time - start_time
-        vid_nums = len(labels_list)
-        
-        # adj_time = (sec_time - start_time) / vid_nums
-        # Li_time = (third_time - sec_time) / vid_nums
-        # RQI_time = (end_time -  third_time) / vid_nums
-
-        # print("Average Compute Adj time is: {}".format((sec_time - start_time)/vid_nums))
-        # print("Average Laplacian time is: {}".format((third_time-sec_time)/vid_nums))
-        # print("Average RQI time is: {}".format((end_time-third_time)/vid_nums))
-        # return (adj_time, Li_time, RQI_time)
 
         # U_Matrices = np.array(U_Matrices)
         # print(U_Matrices)

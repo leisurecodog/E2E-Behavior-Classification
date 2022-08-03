@@ -105,7 +105,29 @@ Train our modified GraphRQI, run below code and it will train and test, then pri
 ```sh
 python python gRQI_custom.py --anomaly --oversampling --undersampling
 ```
-If you want to label your own dataset, please follow [this](#for-training-the-behavior-classification-you-need-to-label-data-by-self-bolow-is-the-example-of-label-file-for-a-video) label format to label your data and above image/label location.
+If you want to label your own dataset, please follow [this](#for-training-the-behavior-classification-you-need-to-label-data-by-self-bolow-is-the-example-of-label-file-for-a-video) label format to label your data and above image/label location. 
+
+Then follow the following code in [gRQI_custom.py](./parallel/BC_module/source_code/gRQI_custom.py) to modify:
+```python
+if os.path.exists('data/train_metrics.npy'):
+        print("Data is exists, no need to recreate")
+    else:
+      if opt.dataset == 'own':
+        ...
+
+      # make your if statment to load your dataset, remember to replace opt.dataset to your dataset name.
+```
+Finally you can use above command to train and test on your own dataset.
+
+___
+
+### OT Module
+OT module has two deep learning model you can replace, one is PINet, another is YolactEdge.
+
+You can just replace above models to which model you want to use. **We only just focus on the implementation of overtaking detection.**
+
+
+
 ___
 
 ## Dataset
