@@ -67,20 +67,21 @@ ___
 
 ### MOT module
 
+```sh
+python demo_track_yolov5.py
+```
+
 If you want to train original ByteTrack, please click the [github link](https://github.com/ifzhang/ByteTrack) and follow the guide.
 
 Or you can just train other object detector like [SSD](https://arxiv.org/abs/1512.02325?context=cs) or others, then replace the YOLOX to what you train like [demo_track_yolov5.py](./parallel/MOT_module/source_code/tools/demo_track_yolov5.py).
 
-```sh
-python demo_track_yolov5.py
-```
+
 
 Evaluate and Test also can follow original ByteTrack guide.
 
 ___
 
 ### TP module
-
 If you want to training DDPG, you need to prepare data like [this](#bdd100kbdd100k-mot), then modify ```class environment``` in [env.py](./parallel/TP_module/source_code/env.py):
 ```python
 if mode == 'default':
@@ -91,6 +92,17 @@ then train DDPG:
 ```sh
 python main.py --actor seq2seq # training DDPG that actor using seq2seq model.
 ```
+After training end, test function will be called automatically.
+
+___
+
+### BC module
+Train our modified GraphRQI, run below code and it will train and test, then print out the test result:
+
+```sh
+python python gRQI_custom.py --anomaly --oversampling --undersampling
+```
+If you want to label your own dataset, please follow [this](#for-training-the-behavior-classification-you-need-to-label-data-by-self-bolow-is-the-example-of-label-file-for-a-video) label format to label your data and above image/label location.
 ___
 
 ## Dataset
@@ -113,7 +125,7 @@ bdd100k/images/track/train/00a0f008/00a0f008-00001.jpg # image location, for get
 bdd100k/labels_with_ids/track/train/00a0f008/00a0f008-00001.txt # annotation location
 ```
 
-For training the Behavior Classification, you need to label data by self, bolow is the example of label file for a video:
+#### For training the Behavior Classification, you need to label data by self, bolow is the example of label file for a video:
 ```sh
 # label format: object_id behavior_label.
 # 0 means conservative, 1 means aggressive.
