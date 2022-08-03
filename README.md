@@ -47,15 +47,22 @@ If you want to modify the module, please follow the above abbreviation descripti
 
 If you want to replace the module, you need to rewrite the corresponding file in the module folder, such as TP_module/TP.py
 
-## Training & Testing
+## Train & Test
 Each folder of module have a folder name call **source_code** except OT module, this folder contains all of original files. if needs any training, testing or others, you can use this folder.
 
 In the following guide will describe how to use  source code of each module.
 
 ### MOT module
 
-If you want to train original ByteTrack, please click the [github link](https://github.com/ifzhang/ByteTrack) and follow the guide. Or you can just train other object detector like [SSD](https://arxiv.org/abs/1512.02325?context=cs) or others, then replace the YOLOX to what you train like [demo_track_yolov5.py](./parallel/MOT_module/source_code/tools/demo_track_yolov5.py).
+If you want to train original ByteTrack, please click the [github link](https://github.com/ifzhang/ByteTrack) and follow the guide.
 
+Or you can just train other object detector like [SSD](https://arxiv.org/abs/1512.02325?context=cs) or others, then replace the YOLOX to what you train like [demo_track_yolov5.py](./parallel/MOT_module/source_code/tools/demo_track_yolov5.py).
+
+Evaluate and Test also can follow original ByteTrack guide.
+
+### TP module
+
+If you want to training the 
 
 ## Dataset
 ### BDD100K/BDD100K MOT
@@ -73,7 +80,7 @@ For traning the Trajectory Prediction, you need to follow the above format:
 ```
 and make sure that your images and labels is placed in corresponding location and name, like:
 ```sh
-bdd100k/images/track/train/00a0f008/00a0f008-00001.jpg # image location, for get w and h
+bdd100k/images/track/train/00a0f008/00a0f008-00001.jpg # image location, for get image width and height
 bdd100k/labels_with_ids/track/train/00a0f008/00a0f008-00001.txt # annotation location
 ```
 
@@ -91,5 +98,5 @@ KITTI: [link](http://www.cvlibs.net/datasets/kitti/)<br>
 This dataset is used to Evaluate Trajectory Prediction and Overtaking Assistance.<br>
 You can just downaload the KITTI Tracking dataset if you just want to evaluate Trajectory Prediction.<br>
 If you want to evaluate overtaking assistance, you need to download the raw data and LiDAR data of KITTI, and annotate overtaking data by yourself.
-### CEO Videos
+### CEO Dash Cam Videos
 This dataset is used to display our total result, neither training nor evaluate.
