@@ -82,17 +82,20 @@ Evaluate and Test also can follow original ByteTrack guide.
 ___
 
 ### TP module
-If you want to training DDPG, you need to prepare data like [this](#bdd100kbdd100k-mot), then modify ```class environment``` in [env.py](./parallel/TP_module/source_code/env.py):
+
+Train DDPG:
+```sh
+python main.py --actor seq2seq # training DDPG that actor using seq2seq model.
+```
+After training end, test function will be called automatically.
+
+If you want to training DDPG with your own dataset, you need to prepare data like [this](#bdd100kbdd100k-mot), then modify ```class environment``` in [env.py](./parallel/TP_module/source_code/env.py):
 ```python
 if mode == 'default':
     dataset = 'bdd100k'
     self.datas = self.anonymous(data_preprocess(dataset), nb_t) # modify these lines for load your own dataset.
 ```
-then train DDPG:
-```sh
-python main.py --actor seq2seq # training DDPG that actor using seq2seq model.
-```
-After training end, test function will be called automatically.
+
 
 ___
 
