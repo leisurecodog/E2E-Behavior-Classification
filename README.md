@@ -86,7 +86,7 @@ If you want to training DDPG, you need to prepare data like [this](#bdd100kbdd10
 ```python
 if mode == 'default':
     dataset = 'bdd100k'
-    self.datas = self.anonymous(data_preprocess(dataset), nb_t) # modify these line for load your own dataset.
+    self.datas = self.anonymous(data_preprocess(dataset), nb_t) # modify these lines for load your own dataset.
 ```
 then train DDPG:
 ```sh
