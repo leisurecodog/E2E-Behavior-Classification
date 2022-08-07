@@ -174,8 +174,20 @@ ___
 KITTI: [link](http://www.cvlibs.net/datasets/kitti/)<br>
 This dataset is used to Evaluate Trajectory Prediction and Overtaking Assistance.<br>
 You can just downaload the KITTI Tracking dataset if you just want to evaluate Trajectory Prediction.<br>
-If you want to evaluate overtaking assistance, you need to download the raw data and LiDAR data of KITTI, and annotate overtaking data by yourself.
-##### # TODO
+If you want to evaluate overtaking assistance, you need to download the raw data and LiDAR data of KITTI, and follow below format to label your data:
+```sh
+# format: frame_id, overtaking situation
+# 0 means can't overtake
+# 1 means can overtake from left
+# 2 means don't need to overtake
+# 3 means can overtake from right
+0, 2
+5, 2
+10, 0
+...
+...
+
+```
 
 ___
 ### CEO Dash Cam Videos
